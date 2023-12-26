@@ -50,6 +50,10 @@ combo_t* combo_get(uint16_t combo_idx) {
 #include "keymap_introspection.h"
 #endif
 
+#ifdef PROTOCOL_BMP
+#    include "bmp/state_controller.h"
+#endif
+
 __attribute__((weak)) void process_combo_event(uint16_t combo_index, bool pressed) {}
 
 #ifndef COMBO_ONLY_FROM_LAYER
@@ -470,6 +474,9 @@ static combo_key_action_t process_single_combo(combo_t *combo, uint16_t keycode,
             KEY_STATE_DOWN(combo->state, key_index);
             if (longest_term < time) {
                 longest_term = time;
+#ifdef PROTOCOL_BMP
+                BMPAPI->app.schedule_next_task(longest_term + 1);
+#endif
             }
         }
         if (ALL_COMBO_KEYS_ARE_DOWN(COMBO_STATE(combo), key_count)) {
@@ -513,6 +520,9 @@ static combo_key_action_t process_single_combo(combo_t *combo, uint16_t keycode,
 
                     // get possible longer waiting time for tap-/hold-only combos.
                     longest_term = _get_wait_time(combo_index, combo);
+#ifdef PROTOCOL_BMP
+                    BMPAPI->app.schedule_next_task(longest_term + 1);
+#endif
                 }
             } // if timer elapsed end
         }
