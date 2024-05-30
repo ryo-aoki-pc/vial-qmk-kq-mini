@@ -215,6 +215,19 @@ void qmk_settings_reset(void) {
     QS.tapping_toggle = TAPPING_TOGGLE;
     QS.flow_tap_term = 0;
 
+#if defined(VIAL_DEFAULT_PERMISSIVE_HOLD)
+    QS.tapping |= (1 << 0);
+#endif
+#if defined(VIAL_DEFAULT_IGNORE_MOD_TAP_INTERRUPT)
+    QS.tapping |= (1 << 1);
+#endif
+#if defined(VIAL_DEFAULT_TAPPING_FORCE_HOLD)
+    QS.tapping |= (1 << 2);
+#endif
+#if defined(VIAL_DEFAULT_RETRO_TAPPING)
+    QS.tapping |= (1 << 3);
+#endif
+
     eeprom_settings_save();
 
     /* must call clear_keyboard for the NKRO setting to not cause stuck keys */
