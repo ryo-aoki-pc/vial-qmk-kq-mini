@@ -11,6 +11,9 @@
 #include "eeconfig.h"
 #include "via.h"
 #include "version.h"
+#include "quantum/nvm/nvm_eeconfig.h"
+#include "quantum/nvm/eeprom/nvm_eeprom_eeconfig_internal.h"
+#include "quantum/nvm/eeprom/nvm_eeprom_via_internal.h"
 
 #include "eeprom_bmp.h"
 #include "bmp_flash.h"

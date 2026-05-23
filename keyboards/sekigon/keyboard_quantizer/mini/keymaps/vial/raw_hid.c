@@ -2,8 +2,13 @@
 #include <stdbool.h>
 
 #include "raw_hid.h"
+#include "host.h"
 #include "via.h"
 #include "vial.h"
+
+void raw_hid_send(uint8_t *data, uint8_t length) {
+    host_raw_hid_send(data, length);
+}
 
 extern void raw_hid_receive_vial(uint8_t *data, uint8_t length);
 extern void raw_hid_receive_qmk(uint8_t *data, uint8_t length);

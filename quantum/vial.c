@@ -612,7 +612,7 @@ bool process_record_vial(uint16_t keycode, keyrecord_t *record) {
 
 #ifdef VIAL_KEY_OVERRIDE_ENABLE
 static bool vial_key_override_disabled = 0;
-static key_override_t vial_key_overrides[VIAL_KEY_OVERRIDE_ENTRIES] = { 0 };
+key_override_t vial_key_overrides[VIAL_KEY_OVERRIDE_ENTRIES] = { 0 };
 
 static int vial_get_key_override(uint8_t index, key_override_t *out) {
     vial_key_override_entry_t entry;
@@ -650,11 +650,11 @@ static void reload_key_override(void) {
         vial_get_key_override(i, &vial_key_overrides[i]);
 }
 
-uint16_t key_override_count(void) {
+__attribute__((weak)) uint16_t key_override_count(void) {
     return VIAL_KEY_OVERRIDE_ENTRIES;
 }
 
-const key_override_t* key_override_get(uint16_t key_override_idx) {
+__attribute__((weak)) const key_override_t* key_override_get(uint16_t key_override_idx) {
     if (key_override_idx >= VIAL_KEY_OVERRIDE_ENTRIES)
         return NULL;
     return &vial_key_overrides[key_override_idx];

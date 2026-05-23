@@ -293,6 +293,20 @@ int dynamic_keymap_set_key_override(uint8_t index, const vial_key_override_entry
 }
 #endif
 
+#ifdef VIAL_ALT_REPEAT_KEY_ENABLE
+int dynamic_keymap_get_alt_repeat_key(uint8_t index, vial_alt_repeat_key_entry_t *entry) {
+    (void)index;
+    if (entry) memset(entry, 0, sizeof(*entry));
+    return -1;
+}
+
+int dynamic_keymap_set_alt_repeat_key(uint8_t index, const vial_alt_repeat_key_entry_t *entry) {
+    (void)index;
+    (void)entry;
+    return -1;
+}
+#endif
+
 void dynamic_keymap_reset(void) {
 #ifdef VIAL_ENABLE
     /* temporarily unlock the keyboard so we can set hardcoded QK_BOOT keycode */

@@ -5,6 +5,11 @@ CFLAGS += -DMOUSE_EXTENDED_REPORT
 
 SRC := $(filter-out $(QUANTUM_DIR)/dynamic_keymap.c, $(SRC))
 SRC := $(filter-out $(QUANTUM_DIR)/encoder.c, $(SRC))
+SRC := $(filter-out $(QUANTUM_DIR)/nvm/eeprom/nvm_dynamic_keymap.c, $(SRC))
+SRC := $(filter-out $(QUANTUM_DIR)/nvm/eeprom/nvm_via.c, $(SRC))
+SRC := $(filter-out $(QUANTUM_DIR)/raw_hid.c, $(SRC))
+SRC := $(filter-out raw_hid.c, $(SRC))
+SRC := $(filter-out $(PLATFORM_PATH)/timer.c, $(SRC))
 # Override get_tapping_term of VIAL
 # $(INTERMEDIATE_OUTPUT)/quantum/vial.o: CFLAGS += -Dget_tapping_term=get_tapping_term_vial_default
 

@@ -88,10 +88,12 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                  .col_pins        = MATRIX_COL_PINS,
                                                  .is_left_hand    = true,
                                              },
+#if defined(ENCODERS_PAD_A) && defined(ENCODERS_PAD_B)
                                          .encoder = {
                                             .pin_a = ENCODERS_PAD_A,
                                             .pin_b = ENCODERS_PAD_B,
                                          },
+#endif
                                          .param_peripheral = {60, 30, 7},
                                          .param_central    = {60, 30, 7},
                                          .led              = {.pin = WS2812_DI_PIN, .num = 1},

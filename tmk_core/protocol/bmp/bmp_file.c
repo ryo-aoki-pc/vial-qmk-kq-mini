@@ -11,6 +11,7 @@
 #include "bmp_file.h"
 #include "bmp_vial.h"
 #include "eeconfig.h"
+#include "quantum/nvm/nvm_eeconfig.h"
 #include "eeprom_bmp.h"
 #include "crc16.h"
 #include "bmp.h"

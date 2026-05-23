@@ -16,7 +16,8 @@
 
 #pragma once
 
-#include "eeconfig.h" // for EECONFIG_SIZE
+#include "eeconfig.h"
+#include "quantum/nvm/eeprom/nvm_eeprom_eeconfig_internal.h" // for EECONFIG_SIZE
 #include "action.h"
 
 // Keyboard level code can change where VIA stores the magic.

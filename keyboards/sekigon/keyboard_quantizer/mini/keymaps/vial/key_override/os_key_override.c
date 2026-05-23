@@ -7,23 +7,31 @@
 
 #define OS_KEY_OVERRIDE_ENTRIES 25
 
-extern const key_override_t **key_overrides;
+extern key_override_t         vial_key_overrides[VIAL_KEY_OVERRIDE_ENTRIES];
 static key_override_t         os_override[OS_KEY_OVERRIDE_ENTRIES]                                   = {0};
 static uint8_t                os_override_cnt                                                        = 0;
 static const key_override_t  *override_ptrs[VIAL_KEY_OVERRIDE_ENTRIES + OS_KEY_OVERRIDE_ENTRIES + 1] = {0};
-void                          os_key_override_init(void) {
+
+void os_key_override_init(void) {
     // copy vial override
     for (size_t i = 0; i < VIAL_KEY_OVERRIDE_ENTRIES; ++i) {
-        override_ptrs[i] = key_overrides[i];
+        override_ptrs[i] = &vial_key_overrides[i];
     }
 
     // regisiter os override
     for (size_t i = 0; i < OS_KEY_OVERRIDE_ENTRIES; ++i) {
         override_ptrs[i + VIAL_KEY_OVERRIDE_ENTRIES] = &os_override[i];
     }
+}
 
-    // swap reference
-    key_overrides = override_ptrs;
+uint16_t key_override_count(void) {
+    return VIAL_KEY_OVERRIDE_ENTRIES + os_override_cnt;
+}
+
+const key_override_t *key_override_get(uint16_t key_override_idx) {
+    if (key_override_idx >= VIAL_KEY_OVERRIDE_ENTRIES + os_override_cnt)
+        return NULL;
+    return override_ptrs[key_override_idx];
 }
 
 int register_os_key_override(const key_override_t *override) {

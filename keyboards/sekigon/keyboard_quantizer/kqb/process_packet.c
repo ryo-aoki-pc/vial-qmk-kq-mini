@@ -27,6 +27,8 @@
 #include "quantum.h"
 #include "pointing_device.h"
 
+extern uint8_t uart_getchar(void);
+
 #ifndef QUANTIZER_REPORT_PARSER
 #    define QUANTIZER_REPORT_PARSER REPORT_PARSER_DEFAULT
 #endif

@@ -175,8 +175,10 @@ void housekeeping_task_user(void) {
 #include "dynamic_keymap.h"
 #include "send_string.h"
 
-#ifdef VIA_ENABLE   
+#ifdef VIA_ENABLE
 #    include "via.h"
+#    include "quantum/nvm/eeprom/nvm_eeprom_eeconfig_internal.h"
+#    include "quantum/nvm/eeprom/nvm_eeprom_via_internal.h"
 #    define DYNAMIC_KEYMAP_EEPROM_START (VIA_EEPROM_CONFIG_END)
 #else
 #    include "eeconfig.h"

@@ -26,5 +26,5 @@ uint16_t timer_elapsed(uint16_t last) {
 }
 
 uint32_t timer_elapsed32(uint32_t last) {
-    return TIMER_DIFF(timer_read32(), last, (1 << 27));
+    return TIMER_DIFF_32(timer_read32(), last) & ((1 << 27) - 1);
 }
