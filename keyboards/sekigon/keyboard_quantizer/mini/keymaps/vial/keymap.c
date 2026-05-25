@@ -243,9 +243,18 @@ void housekeeping_task_user(void) {
 #define VIAL_KEY_OVERRIDE_SIZE 0
 #endif
 
+// Alt Repeat Key (added by newer vial; must mirror quantum/nvm/eeprom/nvm_dynamic_keymap.c)
+#define VIAL_ALT_REPEAT_KEY_EEPROM_ADDR (VIAL_KEY_OVERRIDE_EEPROM_ADDR + VIAL_KEY_OVERRIDE_SIZE)
+
+#ifdef VIAL_ALT_REPEAT_KEY_ENABLE
+#define VIAL_ALT_REPEAT_KEY_SIZE (sizeof(vial_alt_repeat_key_entry_t) * VIAL_ALT_REPEAT_KEY_ENTRIES)
+#else
+#define VIAL_ALT_REPEAT_KEY_SIZE 0
+#endif
+
 // Dynamic macro
 #ifndef DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR
-#    define DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR (VIAL_KEY_OVERRIDE_EEPROM_ADDR + VIAL_KEY_OVERRIDE_SIZE)
+#    define DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR (VIAL_ALT_REPEAT_KEY_EEPROM_ADDR + VIAL_ALT_REPEAT_KEY_SIZE)
 #endif
 
 // Dynamic macros are stored after the keymaps and use what is available
