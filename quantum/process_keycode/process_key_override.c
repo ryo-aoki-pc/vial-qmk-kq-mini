@@ -25,6 +25,9 @@
 #include "quantum_keycodes.h"
 #include "keymap_introspection.h"
 #include "qmk_settings.h"
+#ifdef VIAL_ENABLE
+#    include "vial.h"
+#endif
 
 #ifndef KEY_OVERRIDE_REPEAT_DELAY
 #    define KEY_OVERRIDE_REPEAT_DELAY 500
@@ -187,6 +190,11 @@ const key_override_t *clear_active_override(const bool allow_reregister) {
 
     // Then unregister the mod-free replacement key if desired
     if (unregister_replacement) {
+#ifdef VIAL_ENABLE
+        if (IS_QK_MACRO(mod_free_replacement)) {
+            // Macros are fire-and-forget: nothing to release here.
+        } else
+#endif
         if (IS_BASIC_KEYCODE(mod_free_replacement)) {
             del_key(mod_free_replacement);
         } else {
@@ -360,6 +368,15 @@ static bool try_activating_override(const uint16_t keycode, const uint8_t layer,
             const uint8_t override_mods = extract_mod_bits(override->replacement);
             set_weak_override_mods(override_mods);
 
+#ifdef VIAL_ENABLE
+            if (IS_QK_MACRO(mod_free_replacement)) {
+                // Vial macros: fire immediately via the magic-position path so
+                // process_record_via -> dynamic_keymap_macro_send is invoked.
+                send_keyboard_report();
+                wait_ms(QS_tap_code_delay);
+                vial_keycode_down(mod_free_replacement);
+            } else
+#endif
             // If this is a modifier event that activates the key override we _always_ defer the actual full activation of the override
             if (is_mod) {
                 key_override_printf("Deferring register replacement key\n");
