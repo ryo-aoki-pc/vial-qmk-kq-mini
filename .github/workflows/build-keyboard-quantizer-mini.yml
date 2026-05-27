@@ -1,0 +1,98 @@
+name: Build keyboard_quantizer/mini (vial)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build sekigon/keyboard_quantizer/mini:vial:uf2
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$(pwd)"
+
+      - name: Debug environment
+        run: |
+          echo "## Environment" | tee -a "$GITHUB_STEP_SUMMARY"
+          git rev-parse HEAD
+          git describe --tags --long --dirty="\*" 2>&1 || echo "(git describe failed)"
+          git submodule status | head -20
+          which qmk && qmk --version || true
+          arm-none-eabi-gcc --version | head -1 || true
+
+      - name: Build firmware
+        id: build
+        shell: bash
+        run: |
+          set -o pipefail
+          make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true BREAK_ON_ERRORS=yes 2>&1 | tee build.log
+          echo "::group::Tail of build.log"
+          tail -80 build.log
+          echo "::endgroup::"
+          # Explicit success verification — make may exit 0 even when no .uf2 is produced
+          if ! ls .build/*.uf2 >/dev/null 2>&1; then
+            echo "::error::No .uf2 was produced under .build/ despite make exiting 0"
+            ls -la .build/ 2>&1 || true
+            exit 1
+          fi
+
+      - name: Locate .uf2 outputs
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          echo "## Post-build directory listings" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "::group::repo root listing"
+          ls -la
+          echo "::endgroup::"
+          echo "::group::find any .uf2/.bin/.hex/.elf"
+          find . -maxdepth 6 \( -name '*.uf2' -o -name '*.bin' -o -name '*.hex' -o -name '*.elf' \) -print 2>/dev/null
+          echo "::endgroup::"
+          echo "::group::.build/ listing"
+          ls -la .build/ 2>&1 || echo "(no .build/)"
+          echo "::endgroup::"
+          if [ -d .build ]; then
+            for log in .build/failed.log.* .failed; do
+              [ -f "$log" ] || continue
+              printf '\n::group::%s\n' "$log"
+              cat "$log"
+              printf '::endgroup::\n'
+            done
+          fi
+
+      - name: Upload .uf2 artifact
+        if: ${{ steps.build.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sekigon_keyboard_quantizer_mini_vial
+          path: .build/*.uf2
+          if-no-files-found: error
+          include-hidden-files: true
+
+      - name: Upload diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          path: |
+            build.log
+            .build/**
+            .failed
+          if-no-files-found: ignore
+          include-hidden-files: true
