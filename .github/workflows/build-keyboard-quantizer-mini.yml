@@ -1,0 +1,39 @@
+name: Build keyboard_quantizer/mini (vial)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build sekigon/keyboard_quantizer/mini:vial:uf2
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$(pwd)"
+
+      - name: Build firmware
+        run: make sekigon/keyboard_quantizer/mini:vial:uf2
+
+      - name: Upload .uf2 artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sekigon_keyboard_quantizer_mini_vial
+          path: "*.uf2"
+          if-no-files-found: error
