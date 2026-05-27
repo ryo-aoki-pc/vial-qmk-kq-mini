@@ -39,19 +39,29 @@ jobs:
 
       - name: Build firmware
         id: build
-        run: make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true
-
-      - name: Dump build failure logs
-        if: ${{ failure() && steps.build.conclusion == 'failure' }}
+        shell: bash
         run: |
-          echo '### Build failure logs' | tee -a "$GITHUB_STEP_SUMMARY"
-          ls -la .build/ 2>/dev/null || echo "(no .build/ directory)"
-          for log in .build/failed.log.* .failed; do
-            [ -f "$log" ] || continue
-            printf '\n::group::%s\n' "$log"
-            cat "$log"
-            printf '::endgroup::\n'
-          done
+          set -o pipefail
+          make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true 2>&1 | tee build.log
+
+      - name: Show build outputs
+        if: ${{ always() }}
+        run: |
+          echo "## Post-build directory listings" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "### repo root *.uf2"
+          ls -la *.uf2 2>&1 || true
+          echo "### .build/"
+          ls -la .build/ 2>&1 || true
+          echo "### .build/*.uf2"
+          ls -la .build/*.uf2 2>&1 || true
+          if [ -d .build ]; then
+            for log in .build/failed.log.* .failed; do
+              [ -f "$log" ] || continue
+              printf '\n::group::%s\n' "$log"
+              cat "$log"
+              printf '::endgroup::\n'
+            done
+          fi
 
       - name: Upload .uf2 artifact
         if: ${{ steps.build.outcome == 'success' }}
@@ -61,12 +71,13 @@ jobs:
           path: .build/*.uf2
           if-no-files-found: error
 
-      - name: Upload build logs on failure
-        if: ${{ failure() }}
+      - name: Upload diagnostics
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs
+          name: build-diagnostics
           path: |
+            build.log
             .build/**
             .failed
           if-no-files-found: ignore
