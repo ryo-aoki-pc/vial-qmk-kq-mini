@@ -499,8 +499,7 @@ bool process_key_override(const uint16_t keycode, const keyrecord_t *const recor
 
     // Non-mod key up events never activate a key override
     if (is_mod || key_down) {
-        // Get the exact layer that was hit. It will be cached at this point
-        const uint8_t layer = read_source_layers_cache(record->event.key);
+        const uint8_t layer = get_highest_layer(layer_state | default_layer_state);
 
         // Use blocked to ensure the same override is not activated again immediately after it is deactivated
         send_key_action = try_activating_override(keycode, layer, key_down, is_mod, effective_mods, &activated);
