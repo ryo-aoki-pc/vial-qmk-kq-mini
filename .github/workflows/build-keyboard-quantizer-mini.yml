@@ -23,17 +23,50 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
+          fetch-depth: 0
 
       - name: Mark workspace as safe for git
         run: git config --global --add safe.directory "$(pwd)"
 
+      - name: Debug environment
+        run: |
+          echo "## Environment" | tee -a "$GITHUB_STEP_SUMMARY"
+          git rev-parse HEAD
+          git describe --tags --long --dirty="\*" 2>&1 || echo "(git describe failed)"
+          git submodule status | head -20
+          which qmk && qmk --version || true
+          arm-none-eabi-gcc --version | head -1 || true
+
       - name: Build firmware
-        run: make sekigon/keyboard_quantizer/mini:vial:uf2
+        id: build
+        run: make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true
+
+      - name: Dump build failure logs
+        if: ${{ failure() && steps.build.conclusion == 'failure' }}
+        run: |
+          echo '### Build failure logs' | tee -a "$GITHUB_STEP_SUMMARY"
+          ls -la .build/ 2>/dev/null || echo "(no .build/ directory)"
+          for log in .build/failed.log.* .failed; do
+            [ -f "$log" ] || continue
+            printf '\n::group::%s\n' "$log"
+            cat "$log"
+            printf '::endgroup::\n'
+          done
 
       - name: Upload .uf2 artifact
-        if: success()
+        if: ${{ steps.build.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: sekigon_keyboard_quantizer_mini_vial
-          path: "*.uf2"
+          path: .build/*.uf2
           if-no-files-found: error
+
+      - name: Upload build logs on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            .build/**
+            .failed
+          if-no-files-found: ignore
