@@ -42,10 +42,16 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true 2>&1 | tee build.log
+          make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true BREAK_ON_ERRORS=yes 2>&1 | tee build.log
           echo "::group::Tail of build.log"
-          tail -50 build.log
+          tail -80 build.log
           echo "::endgroup::"
+          # Explicit success verification — make may exit 0 even when no .uf2 is produced
+          if ! ls .build/*.uf2 >/dev/null 2>&1; then
+            echo "::error::No .uf2 was produced under .build/ despite make exiting 0"
+            ls -la .build/ 2>&1 || true
+            exit 1
+          fi
 
       - name: Locate .uf2 outputs
         if: ${{ always() }}
