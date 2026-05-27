@@ -83,6 +83,7 @@ jobs:
           name: sekigon_keyboard_quantizer_mini_vial
           path: .build/*.uf2
           if-no-files-found: error
+          include-hidden-files: true
 
       - name: Upload diagnostics
         if: ${{ always() }}
@@ -94,3 +95,4 @@ jobs:
             .build/**
             .failed
           if-no-files-found: ignore
+          include-hidden-files: true
