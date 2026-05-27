@@ -43,17 +43,24 @@ jobs:
         run: |
           set -o pipefail
           make sekigon/keyboard_quantizer/mini:vial:uf2 VERBOSE=true 2>&1 | tee build.log
+          echo "::group::Tail of build.log"
+          tail -50 build.log
+          echo "::endgroup::"
 
-      - name: Show build outputs
+      - name: Locate .uf2 outputs
         if: ${{ always() }}
+        shell: bash
         run: |
           echo "## Post-build directory listings" | tee -a "$GITHUB_STEP_SUMMARY"
-          echo "### repo root *.uf2"
-          ls -la *.uf2 2>&1 || true
-          echo "### .build/"
-          ls -la .build/ 2>&1 || true
-          echo "### .build/*.uf2"
-          ls -la .build/*.uf2 2>&1 || true
+          echo "::group::repo root listing"
+          ls -la
+          echo "::endgroup::"
+          echo "::group::find any .uf2/.bin/.hex/.elf"
+          find . -maxdepth 6 \( -name '*.uf2' -o -name '*.bin' -o -name '*.hex' -o -name '*.elf' \) -print 2>/dev/null
+          echo "::endgroup::"
+          echo "::group::.build/ listing"
+          ls -la .build/ 2>&1 || echo "(no .build/)"
+          echo "::endgroup::"
           if [ -d .build ]; then
             for log in .build/failed.log.* .failed; do
               [ -f "$log" ] || continue
