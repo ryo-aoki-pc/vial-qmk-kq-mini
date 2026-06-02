@@ -1259,7 +1259,27 @@ static void process_enumeration(tuh_xfer_t* xfer)
       TU_ASSERT(tuh_control_xfer(xfer), );
     }else
     {
+      // Enumeration failed: clean up partial state instead of leaking it,
+      // then retry from scratch while the device is still attached.
+      uint8_t const rhport   = _dev0.rhport;
+      uint8_t const hub_addr = _dev0.hub_addr;
+      uint8_t const hub_port = _dev0.hub_port;
+
+      failed_count = 0;
+
+      // free the control endpoint opened for address 0 and any
+      // partially-addressed device slot
+      hcd_device_close(rhport, 0);
+      process_removing_device(rhport, hub_addr, hub_port);
+
       enum_full_complete();
+
+      // if the device is still attached on the root port, restart
+      // enumeration (bus reset + retry) instead of giving up permanently
+      if (hub_addr == 0 && hcd_port_connect_status(rhport))
+      {
+        hcd_event_device_attach(rhport, false);
+      }
     }
     return;
   }
@@ -1461,7 +1481,14 @@ static bool enum_new_device(hcd_event_t* event)
     hcd_port_reset_end( _dev0.rhport);
 
     // device unplugged while delaying
-    if ( !hcd_port_connect_status(_dev0.rhport) ) return true;
+    if ( !hcd_port_connect_status(_dev0.rhport) )
+    {
+      // Complete enumeration so that future attach events can be processed.
+      // Otherwise _dev0.enumerating stays set and all attach events are
+      // deferred forever (host stack is dead until power cycle).
+      enum_full_complete();
+      return true;
+    }
 
     _dev0.speed = hcd_port_speed_get(_dev0.rhport );
     TU_LOG_USBH("%s Speed\r\n", tu_str_speed[_dev0.speed]);
