@@ -383,3 +383,7 @@ void dynamic_keymap_macro_send(uint8_t id) {
         }
     }
 }
+
+// EEPROM defaults generated from the AroundForty-RB ZMK keymap
+// (zmk-keymap-docgen/zmk_to_vial.py). Applied on EEPROM (re)initialisation.
+#include "zmk_keymap_defaults.inc"

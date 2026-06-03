@@ -18,6 +18,46 @@
       "name": "ENABLE_JP_KEY_ON_US_OS_OVERRIDE",
       "title": "Enable JP keyboard on US OS override",
       "shortName": "JU\nOVR"
+    },
+    {
+      "name": "MM_VIM_W",
+      "title": "ZMK mod-morph carrier: mm_vim_w (QK_KB_3)",
+      "shortName": "ZMK\nw"
+    },
+    {
+      "name": "MM_VIM_CTRL_R",
+      "title": "ZMK mod-morph carrier: mm_vim_ctrl_r (QK_KB_4)",
+      "shortName": "ZMK\nC-r"
+    },
+    {
+      "name": "MM_VIM_U",
+      "title": "ZMK mod-morph carrier: mm_vim_u (QK_KB_5)",
+      "shortName": "ZMK\nu"
+    },
+    {
+      "name": "MM_VIM_O",
+      "title": "ZMK mod-morph carrier: mm_vim_o (QK_KB_6)",
+      "shortName": "ZMK\no"
+    },
+    {
+      "name": "MM_VIM_SHIFT_4",
+      "title": "ZMK mod-morph carrier: mm_vim_shift_4 (QK_KB_7)",
+      "shortName": "ZMK\n$"
+    },
+    {
+      "name": "MM_VIM_SHIFT_6",
+      "title": "ZMK mod-morph carrier: mm_vim_shift_6 (QK_KB_8)",
+      "shortName": "ZMK\n^"
+    },
+    {
+      "name": "MM_VIM_VISUAL_SHIFT_4",
+      "title": "ZMK mod-morph carrier: mm_vim_visual_shift_4 (QK_KB_9)",
+      "shortName": "ZMK\nv$"
+    },
+    {
+      "name": "MM_VIM_VISUAL_SHIFT_6",
+      "title": "ZMK mod-morph carrier: mm_vim_visual_shift_6 (QK_KB_10)",
+      "shortName": "ZMK\nv^"
     }
   ],
   "layouts": {
