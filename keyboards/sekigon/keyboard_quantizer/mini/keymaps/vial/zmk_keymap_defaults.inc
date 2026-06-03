@@ -43,9 +43,9 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
     {0, 6, 0, LT(1, KC_ENTER)},
     {0, 6, 4, LT(2, KC_SPACE)},
     {0, 6, 5, MT(MOD_RCTL, KC_MINUS)},
+    {0, 7, 5, MO(6)},
     {0, 8, 0, MT(MOD_RSFT, KC_SLASH)},
     {0, 8, 1, MO(2)},
-    {0, 13, 5, MO(6)},
     {1, 0, 6, KC_NO},
     {1, 1, 4, MT(MOD_LCTL, KC_TAB)},
     {1, 1, 5, KC_NO},
@@ -176,11 +176,11 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
     {4, 6, 0, MO(5)},
     {4, 6, 4, KC_NO},
     {4, 6, 5, KC_RIGHT_CTRL},
+    {4, 7, 5, KC_NO},
     {4, 7, 6, KC_NO},
     {4, 7, 7, KC_NO},
     {4, 8, 0, KC_RIGHT_SHIFT},
     {4, 8, 1, KC_NO},
-    {4, 13, 5, KC_NO},
     {5, 0, 2, KC_NO},
     {5, 0, 3, KC_NO},
     {5, 0, 6, KC_NO},
@@ -213,11 +213,11 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
     {5, 6, 0, KC_NO},
     {5, 6, 4, KC_NO},
     {5, 6, 5, KC_RIGHT_CTRL},
+    {5, 7, 5, KC_NO},
     {5, 7, 6, KC_NO},
     {5, 7, 7, KC_NO},
     {5, 8, 0, KC_RIGHT_SHIFT},
     {5, 8, 1, KC_NO},
-    {5, 13, 5, KC_NO},
     {6, 0, 2, KC_NO},
     {6, 0, 3, KC_NO},
     {6, 0, 6, KC_NO},
@@ -250,11 +250,11 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
     {6, 6, 0, KC_NO},
     {6, 6, 4, KC_NO},
     {6, 6, 5, KC_NO},
+    {6, 7, 5, KC_NO},
     {6, 7, 6, KC_NO},
     {6, 7, 7, KC_NO},
     {6, 8, 0, KC_NO},
     {6, 8, 1, KC_NO},
-    {6, 13, 5, KC_NO},
 };
 
 static const vial_tap_dance_entry_t zmk_tap_dance_entries[] = {
@@ -482,7 +482,7 @@ static const uint8_t zmk_macro_buffer[] = {
 /* Content hash of the bundled keymap. Stored in the high 16 bits of the
  * user EEPROM word so that flashing a firmware with a *changed* keymap
  * re-applies it on the next boot (see zmk_keymap_apply_if_outdated). */
-#define ZMK_KEYMAP_VERSION 0xCA8Cu
+#define ZMK_KEYMAP_VERSION 0xFE37u
 #define ZMK_KEYMAP_VERSION_SHIFT 16
 #define ZMK_KEYMAP_VERSION_MASK 0xFFFFu
 
