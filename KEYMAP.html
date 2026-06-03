@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keyboard Quantizer Mini (Vial / AroundForty-RB) キーマップ</title>
+<style>
+  body {
+    font-family: -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN",
+                 "Noto Sans JP", Meiryo, sans-serif;
+    line-height: 1.6;
+    color: #1f2328;
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+  h1 { border-bottom: 2px solid #d0d7de; padding-bottom: .3em; }
+  h2 { border-bottom: 1px solid #d0d7de; padding-bottom: .3em; margin-top: 2em; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0 2em;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid #d0d7de;
+    padding: 4px 8px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;   /* セル内は自動折り返しせず、明示的な改行(<br>)のみで改行する */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+  }
+  thead th { background: #f6f8fa; position: sticky; top: 0; }
+  /* 複数行セルは各行を左揃え、ブロック自体はセル内で中央に配置する。 */
+  span.ml { display: inline-block; text-align: left; }
+  /* Layer separator row inside the merged per-mode table. */
+  tr.layer-row th {
+    background: #e1ecf4;
+    text-align: left;
+    font-size: 14px;
+    padding: 8px;
+  }
+  /* "Row N" heading rows are highlighted via inline background-color. */
+  code {
+    background: rgba(175,184,193,.2);
+    padding: .1em .3em;
+    border-radius: 4px;
+    font-size: 85%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  tr[style] code { background: rgba(0,0,0,.06); }
+  /* Visual physical-layout figure: keys absolutely positioned by their real
+     coordinates so the rendering matches the board (split gap, column stagger,
+     rotation, …). */
+  .kb { position: relative; margin: 1em 0 2.5em; }
+  .key {
+    position: absolute;
+    box-sizing: border-box;
+    border: 1px solid #b9c0c8;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+    box-shadow: inset 0 1px 0 #ffffff, inset 0 -2px 1px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 2px;
+    text-align: center;
+    font-family: -apple-system, "Segoe UI", "Noto Sans JP", Meiryo, sans-serif;
+    line-height: 1.1;
+    cursor: default;
+  }
+  .key .kl { font-size: 8px; color: #8a939b; align-self: flex-start; max-width: 100%; overflow: hidden; }
+  .key .kt { font-size: 12px; font-weight: 600; color: #1f2328; max-width: 100%; overflow: hidden; overflow-wrap: anywhere; }
+  .key .kh { font-size: 9px; color: #0969da; max-width: 100%; overflow: hidden; overflow-wrap: anywhere; }
+  /* Auto-shrunk key-cap text: long content (e.g. every step of a macro) keeps
+     its full text and only gets a smaller font so it fits inside the key box. */
+  .key .kt.sz10 { font-size: 10px; }
+  .key .kt.sz9 { font-size: 9px; }
+  .key .kt.sz8 { font-size: 8px; font-weight: 500; }
+  .key .kt.sz7 { font-size: 7px; font-weight: 500; }
+  .key .kh.sz10, .key .kh.sz9 { font-size: 8px; }
+  .key .kh.sz8, .key .kh.sz7 { font-size: 7px; }
+  /* Stacked macro steps: the text block stays centered inside the key
+     (flex align-items) while its lines are left-aligned with each other. */
+  .key .kt.mac, .key .kh.mac { text-align: left; }
+  .key.none { background: #f0f1f2; border-style: dashed; opacity: .45; box-shadow: none; }
+  .key.trans { background: #f7f8fa; }
+  .key.trans .kt { color: #8a939b; font-weight: 400; }
+  /* Extra-op figures (Tap Dance / Mod Morph): keys without a distinct assignment. */
+  .key.dim { background: #fafbfc; border-style: dashed; border-color: #d8dde2; opacity: .4; box-shadow: none; }
+  .key.dim .kl { color: #b1b8be; }
+  /* 経路 (path) figures: double-size keys showing behavior-resolution chains.
+     The boxes are 2x, so every font-size class scales up accordingly, path
+     identifiers render in monospace, and over-long single steps wrap instead
+     of clipping. */
+  .kb.path .key .kt {
+    font-size: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+  .kb.path .key .kt.sz10 { font-size: 12px; }
+  .kb.path .key .kt.sz9 { font-size: 11px; }
+  .kb.path .key .kt.sz8 { font-size: 10px; }
+  .kb.path .key .kt.sz7 { font-size: 9px; }
+  .kb.path .key .kh {
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
+  .kb.path .key .kh.sz10, .kb.path .key .kh.sz9 { font-size: 10px; }
+  .kb.path .key .kh.sz8, .kb.path .key .kh.sz7 { font-size: 9px; }
+  .kb.path .key .kl { font-size: 10px; }
+  /* Layout-figure table: one row per layer; the layer's main figure and its
+     Tap Dance / Mod Morph figures all share the single right-hand cell. */
+  table.figures { width: auto; }
+  table.figures th.fig-layer {
+    white-space: nowrap;
+    vertical-align: middle;
+    font-family: -apple-system, "Segoe UI", "Noto Sans JP", Meiryo, sans-serif;
+    font-size: 13px;
+    background: #f6f8fa;
+    padding: 8px 12px;
+  }
+  table.figures td.fig-cell {
+    text-align: left;
+    white-space: normal;
+    padding: 10px 14px;
+    font-family: -apple-system, "Segoe UI", "Noto Sans JP", Meiryo, sans-serif;
+  }
+  /* Header cells of the figure table must not stick over the figures. */
+  table.figures thead th { position: static; }
+  table.figures .kb { margin: 6px 0; }
+  /* Caption above each Tap Dance / Mod Morph figure inside a layer's cell. */
+  .fig-caption {
+    font-weight: 600;
+    font-size: 13px;
+    color: #57606a;
+    margin: 14px 0 0;
+  }
+</style>
+</head>
+<body>
+<h1>Keyboard Quantizer Mini (Vial / AroundForty-RB) キーマップ</h1>
+<p>※ 7 個のレイヤーのキー割り当てを 1 ファイルに集約。各レイヤーの動作は実機の物理配列に合わせた「レイアウト図」セクションで確認する。</p>
+<h2>レイアウト図</h2>
+<p>各レイヤーを実機の物理配列どおりに配置した図を 1 つの表にまとめる。表の各行が 1 レイヤーで、左列がレイヤー名、右のセルがそのレイヤーの図。各キーは「ラベル / タップ動作 / (ホールド動作)」を表示し、全操作（ダブルタップ / Shift+ / Ctrl+ など）はマウスオーバーのツールチップで確認できる。Tap Dance / Mod Morph の割り当てがあるレイヤーには、その操作専用の図を同じセル内に追加表示する（割り当てのないキーは薄い枠のみ）。</p>
+<table class="figures">
+<thead>
+<tr>
+<th>レイヤー</th>
+<th>レイアウト図</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th class="fig-layer">Layer 0</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key" style="left:0px;top:0px;width:48px;height:48px" title="タップ: Esc&#10;ダブルタップ: Esc&#10;Shift+: Esc&#10;Ctrl+: Esc&#10;KC_ESCAPE"><span class="kt">Esc</span></div>
+<div class="key" style="left:104px;top:0px;width:48px;height:48px" title="タップ: F1&#10;ダブルタップ: F1&#10;Shift+: F1&#10;Ctrl+: F1&#10;KC_F1"><span class="kt">F1</span></div>
+<div class="key" style="left:156px;top:0px;width:48px;height:48px" title="タップ: F2&#10;ダブルタップ: F2&#10;Shift+: F2&#10;Ctrl+: F2&#10;KC_F2"><span class="kt">F2</span></div>
+<div class="key" style="left:208px;top:0px;width:48px;height:48px" title="タップ: F3&#10;ダブルタップ: F3&#10;Shift+: F3&#10;Ctrl+: F3&#10;KC_F3"><span class="kt">F3</span></div>
+<div class="key" style="left:260px;top:0px;width:48px;height:48px" title="タップ: F4&#10;ダブルタップ: F4&#10;Shift+: F4&#10;Ctrl+: F4&#10;KC_F4"><span class="kt">F4</span></div>
+<div class="key" style="left:338px;top:0px;width:48px;height:48px" title="タップ: F5&#10;ダブルタップ: F5&#10;Shift+: F5&#10;Ctrl+: F5&#10;KC_F5"><span class="kt">F5</span></div>
+<div class="key" style="left:390px;top:0px;width:48px;height:48px" title="タップ: F6&#10;ダブルタップ: F6&#10;Shift+: F6&#10;Ctrl+: F6&#10;KC_F6"><span class="kt">F6</span></div>
+<div class="key" style="left:442px;top:0px;width:48px;height:48px" title="タップ: F7&#10;ダブルタップ: F7&#10;Shift+: F7&#10;Ctrl+: F7&#10;KC_F7"><span class="kt">F7</span></div>
+<div class="key" style="left:494px;top:0px;width:48px;height:48px" title="タップ: F8&#10;ダブルタップ: F8&#10;Shift+: F8&#10;Ctrl+: F8&#10;KC_F8"><span class="kt">F8</span></div>
+<div class="key" style="left:572px;top:0px;width:48px;height:48px" title="タップ: F9&#10;ダブルタップ: F9&#10;Shift+: F9&#10;Ctrl+: F9&#10;KC_F9"><span class="kt">F9</span></div>
+<div class="key" style="left:624px;top:0px;width:48px;height:48px" title="タップ: F10&#10;ダブルタップ: F10&#10;Shift+: F10&#10;Ctrl+: F10&#10;KC_F10"><span class="kt">F10</span></div>
+<div class="key" style="left:676px;top:0px;width:48px;height:48px" title="タップ: F11&#10;ダブルタップ: F11&#10;Shift+: F11&#10;Ctrl+: F11&#10;KC_F11"><span class="kt">F11</span></div>
+<div class="key" style="left:728px;top:0px;width:48px;height:48px" title="タップ: F12&#10;ダブルタップ: F12&#10;Shift+: F12&#10;Ctrl+: F12&#10;KC_F12"><span class="kt">F12</span></div>
+<div class="key" style="left:806px;top:0px;width:48px;height:48px" title="タップ: PrtSc&#10;ダブルタップ: PrtSc&#10;Shift+: PrtSc&#10;Ctrl+: PrtSc&#10;KC_PRINT_SCREEN"><span class="kt">PrtSc</span></div>
+<div class="key" style="left:858px;top:0px;width:48px;height:48px" title="タップ: SCROLL_LOCK&#10;ダブルタップ: SCROLL_LOCK&#10;Shift+: SCROLL_LOCK&#10;Ctrl+: SCROLL_LOCK&#10;KC_SCROLL_LOCK"><span class="kt sz7">SCROLL_LOCK</span></div>
+<div class="key" style="left:910px;top:0px;width:48px;height:48px" title="タップ: PAUSE&#10;ダブルタップ: PAUSE&#10;Shift+: PAUSE&#10;Ctrl+: PAUSE&#10;KC_PAUSE"><span class="kt">PAUSE</span></div>
+<div class="key" style="left:0px;top:78px;width:48px;height:48px" title="タップ: L6&#10;ダブルタップ: L6&#10;Shift+: L6&#10;Ctrl+: L6&#10;MO(6)"><span class="kt">L6</span></div>
+<div class="key" style="left:52px;top:78px;width:48px;height:48px" title="タップ: 1&#10;ダブルタップ: 1&#10;Shift+: 1&#10;Ctrl+: 1&#10;KC_1"><span class="kt">1</span></div>
+<div class="key" style="left:104px;top:78px;width:48px;height:48px" title="タップ: 2&#10;ダブルタップ: 2&#10;Shift+: 2&#10;Ctrl+: 2&#10;KC_2"><span class="kt">2</span></div>
+<div class="key" style="left:156px;top:78px;width:48px;height:48px" title="タップ: 3&#10;ダブルタップ: 3&#10;Shift+: 3&#10;Ctrl+: 3&#10;KC_3"><span class="kt">3</span></div>
+<div class="key" style="left:208px;top:78px;width:48px;height:48px" title="タップ: 4&#10;ダブルタップ: 4&#10;Shift+: 4&#10;Ctrl+: 4&#10;KC_4"><span class="kt">4</span></div>
+<div class="key" style="left:260px;top:78px;width:48px;height:48px" title="タップ: 5&#10;ダブルタップ: 5&#10;Shift+: 5&#10;Ctrl+: 5&#10;KC_5"><span class="kt">5</span></div>
+<div class="key" style="left:312px;top:78px;width:48px;height:48px" title="タップ: 6&#10;ダブルタップ: 6&#10;Shift+: 6&#10;Ctrl+: 6&#10;KC_6"><span class="kt">6</span></div>
+<div class="key" style="left:364px;top:78px;width:48px;height:48px" title="タップ: 7&#10;ダブルタップ: 7&#10;Shift+: 7&#10;Ctrl+: 7&#10;KC_7"><span class="kt">7</span></div>
+<div class="key" style="left:416px;top:78px;width:48px;height:48px" title="タップ: 8&#10;ダブルタップ: 8&#10;Shift+: 8&#10;Ctrl+: 8&#10;KC_8"><span class="kt">8</span></div>
+<div class="key" style="left:468px;top:78px;width:48px;height:48px" title="タップ: 9&#10;ダブルタップ: 9&#10;Shift+: 9&#10;Ctrl+: 9&#10;KC_9"><span class="kt">9</span></div>
+<div class="key" style="left:520px;top:78px;width:48px;height:48px" title="タップ: 0&#10;ダブルタップ: 0&#10;Shift+: 0&#10;Ctrl+: 0&#10;KC_0"><span class="kt">0</span></div>
+<div class="key" style="left:572px;top:78px;width:48px;height:48px" title="タップ: -&#10;ホールド: RCtrl&#10;ダブルタップ: -&#10;Shift+: -&#10;Ctrl+: -&#10;MT(MOD_RCTL, KC_MINUS)"><span class="kt">-</span><span class="kh">RCtrl</span></div>
+<div class="key" style="left:624px;top:78px;width:48px;height:48px" title="タップ: =&#10;ダブルタップ: =&#10;Shift+: =&#10;Ctrl+: =&#10;KC_EQUAL"><span class="kt">=</span></div>
+<div class="key" style="left:676px;top:78px;width:100px;height:48px" title="タップ: BS&#10;ダブルタップ: BS&#10;Shift+: BS&#10;Ctrl+: BS&#10;KC_BACKSPACE"><span class="kt">BS</span></div>
+<div class="key" style="left:806px;top:78px;width:48px;height:48px" title="タップ: Ins&#10;ダブルタップ: Ins&#10;Shift+: Ins&#10;Ctrl+: Ins&#10;KC_INSERT"><span class="kt">Ins</span></div>
+<div class="key" style="left:858px;top:78px;width:48px;height:48px" title="タップ: Home&#10;ダブルタップ: Home&#10;Shift+: Home&#10;Ctrl+: Home&#10;KC_HOME"><span class="kt">Home</span></div>
+<div class="key" style="left:910px;top:78px;width:48px;height:48px" title="タップ: PgUp&#10;ダブルタップ: PgUp&#10;Shift+: PgUp&#10;Ctrl+: PgUp&#10;KC_PAGE_UP"><span class="kt">PgUp</span></div>
+<div class="key" style="left:975px;top:78px;width:48px;height:48px" title="タップ: 0x0053&#10;ダブルタップ: 0x0053&#10;Shift+: 0x0053&#10;Ctrl+: 0x0053&#10;0x0053"><span class="kt sz10">0x0053</span></div>
+<div class="key" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: 0x0054&#10;ダブルタップ: 0x0054&#10;Shift+: 0x0054&#10;Ctrl+: 0x0054&#10;0x0054"><span class="kt sz10">0x0054</span></div>
+<div class="key" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: 0x0055&#10;ダブルタップ: 0x0055&#10;Shift+: 0x0055&#10;Ctrl+: 0x0055&#10;0x0055"><span class="kt sz10">0x0055</span></div>
+<div class="key" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: 0x0056&#10;ダブルタップ: 0x0056&#10;Shift+: 0x0056&#10;Ctrl+: 0x0056&#10;0x0056"><span class="kt sz10">0x0056</span></div>
+<div class="key" style="left:0px;top:130px;width:74px;height:48px" title="タップ: Tab&#10;ダブルタップ: Tab&#10;Shift+: Tab&#10;Ctrl+: Tab&#10;KC_TAB"><span class="kt">Tab</span></div>
+<div class="key" style="left:78px;top:130px;width:48px;height:48px" title="タップ: Q&#10;ダブルタップ: Q&#10;Shift+: Q&#10;Ctrl+: Q&#10;KC_Q"><span class="kt">Q</span></div>
+<div class="key" style="left:130px;top:130px;width:48px;height:48px" title="タップ: W&#10;ダブルタップ: W&#10;Shift+: W&#10;Ctrl+: W&#10;KC_W"><span class="kt">W</span></div>
+<div class="key" style="left:182px;top:130px;width:48px;height:48px" title="タップ: E&#10;ダブルタップ: E&#10;Shift+: E&#10;Ctrl+: E&#10;KC_E"><span class="kt">E</span></div>
+<div class="key" style="left:234px;top:130px;width:48px;height:48px" title="タップ: R&#10;ダブルタップ: R&#10;Shift+: R&#10;Ctrl+: R&#10;KC_R"><span class="kt">R</span></div>
+<div class="key" style="left:286px;top:130px;width:48px;height:48px" title="タップ: T&#10;ダブルタップ: T&#10;Shift+: T&#10;Ctrl+: T&#10;KC_T"><span class="kt">T</span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: Y&#10;ダブルタップ: Y&#10;Shift+: Y&#10;Ctrl+: Y&#10;KC_Y"><span class="kt">Y</span></div>
+<div class="key" style="left:390px;top:130px;width:48px;height:48px" title="タップ: U&#10;ダブルタップ: U&#10;Shift+: U&#10;Ctrl+: U&#10;KC_U"><span class="kt">U</span></div>
+<div class="key" style="left:442px;top:130px;width:48px;height:48px" title="タップ: I&#10;ダブルタップ: I&#10;Shift+: I&#10;Ctrl+: I&#10;KC_I"><span class="kt">I</span></div>
+<div class="key" style="left:494px;top:130px;width:48px;height:48px" title="タップ: O&#10;ダブルタップ: O&#10;Shift+: O&#10;Ctrl+: O&#10;KC_O"><span class="kt">O</span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: P&#10;ダブルタップ: P&#10;Shift+: P&#10;Ctrl+: P&#10;KC_P"><span class="kt">P</span></div>
+<div class="key" style="left:598px;top:130px;width:48px;height:48px" title="タップ: [&#10;ダブルタップ: [&#10;Shift+: [&#10;Ctrl+: [&#10;KC_LEFT_BRACKET"><span class="kt">[</span></div>
+<div class="key" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ]&#10;ダブルタップ: ]&#10;Shift+: ]&#10;Ctrl+: ]&#10;KC_RIGHT_BRACKET"><span class="kt">]</span></div>
+<div class="key" style="left:702px;top:130px;width:74px;height:48px" title="タップ: &#92;&#10;ダブルタップ: &#92;&#10;Shift+: &#92;&#10;Ctrl+: &#92;&#10;KC_BACKSLASH"><span class="kt">&#92;</span></div>
+<div class="key" style="left:806px;top:130px;width:48px;height:48px" title="タップ: Del&#10;ダブルタップ: Del&#10;Shift+: Del&#10;Ctrl+: Del&#10;KC_DELETE"><span class="kt">Del</span></div>
+<div class="key" style="left:858px;top:130px;width:48px;height:48px" title="タップ: End&#10;ダブルタップ: End&#10;Shift+: End&#10;Ctrl+: End&#10;KC_END"><span class="kt">End</span></div>
+<div class="key" style="left:910px;top:130px;width:48px;height:48px" title="タップ: PgDn&#10;ダブルタップ: PgDn&#10;Shift+: PgDn&#10;Ctrl+: PgDn&#10;KC_PAGE_DOWN"><span class="kt">PgDn</span></div>
+<div class="key" style="left:975px;top:130px;width:48px;height:48px" title="タップ: 0x005F&#10;ダブルタップ: 0x005F&#10;Shift+: 0x005F&#10;Ctrl+: 0x005F&#10;0x005F"><span class="kt sz10">0x005F</span></div>
+<div class="key" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: 0x0060&#10;ダブルタップ: 0x0060&#10;Shift+: 0x0060&#10;Ctrl+: 0x0060&#10;0x0060"><span class="kt sz10">0x0060</span></div>
+<div class="key" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: 0x0061&#10;ダブルタップ: 0x0061&#10;Shift+: 0x0061&#10;Ctrl+: 0x0061&#10;0x0061"><span class="kt sz10">0x0061</span></div>
+<div class="key" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: 0x0057&#10;ダブルタップ: 0x0057&#10;Shift+: 0x0057&#10;Ctrl+: 0x0057&#10;0x0057"><span class="kt sz10">0x0057</span></div>
+<div class="key" style="left:0px;top:182px;width:87px;height:48px" title="タップ: L2&#10;ダブルタップ: L2&#10;Shift+: L2&#10;Ctrl+: L2&#10;MO(2)"><span class="kt">L2</span></div>
+<div class="key" style="left:91px;top:182px;width:48px;height:48px" title="タップ: A&#10;ホールド: LCtrl&#10;ダブルタップ: A&#10;Shift+: A&#10;Ctrl+: A&#10;MT(MOD_LCTL, KC_A)"><span class="kt">A</span><span class="kh">LCtrl</span></div>
+<div class="key" style="left:143px;top:182px;width:48px;height:48px" title="タップ: S&#10;ダブルタップ: S&#10;Shift+: S&#10;Ctrl+: S&#10;KC_S"><span class="kt">S</span></div>
+<div class="key" style="left:195px;top:182px;width:48px;height:48px" title="タップ: D&#10;ダブルタップ: D&#10;Shift+: D&#10;Ctrl+: D&#10;KC_D"><span class="kt">D</span></div>
+<div class="key" style="left:247px;top:182px;width:48px;height:48px" title="タップ: F&#10;ダブルタップ: F&#10;Shift+: F&#10;Ctrl+: F&#10;KC_F"><span class="kt">F</span></div>
+<div class="key" style="left:299px;top:182px;width:48px;height:48px" title="タップ: G&#10;ダブルタップ: G&#10;Shift+: G&#10;Ctrl+: G&#10;KC_G"><span class="kt">G</span></div>
+<div class="key" style="left:351px;top:182px;width:48px;height:48px" title="タップ: H&#10;ダブルタップ: H&#10;Shift+: H&#10;Ctrl+: H&#10;KC_H"><span class="kt">H</span></div>
+<div class="key" style="left:403px;top:182px;width:48px;height:48px" title="タップ: J&#10;ダブルタップ: J&#10;Shift+: J&#10;Ctrl+: J&#10;KC_J"><span class="kt">J</span></div>
+<div class="key" style="left:455px;top:182px;width:48px;height:48px" title="タップ: K&#10;ダブルタップ: K&#10;Shift+: K&#10;Ctrl+: K&#10;KC_K"><span class="kt">K</span></div>
+<div class="key" style="left:507px;top:182px;width:48px;height:48px" title="タップ: L&#10;ダブルタップ: L&#10;Shift+: L&#10;Ctrl+: L&#10;KC_L"><span class="kt">L</span></div>
+<div class="key" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ;&#10;ダブルタップ: ;&#10;Shift+: ;&#10;Ctrl+: ;&#10;KC_SEMICOLON"><span class="kt">;</span></div>
+<div class="key" style="left:611px;top:182px;width:48px;height:48px" title="タップ: '&#10;ダブルタップ: '&#10;Shift+: '&#10;Ctrl+: '&#10;KC_QUOTE"><span class="kt">'</span></div>
+<div class="key" style="left:663px;top:182px;width:113px;height:48px" title="タップ: Enter&#10;ホールド: L1&#10;ダブルタップ: Enter&#10;Shift+: Enter&#10;Ctrl+: Enter&#10;LT(1, KC_ENTER)"><span class="kt">Enter</span><span class="kh">L1</span></div>
+<div class="key" style="left:975px;top:182px;width:48px;height:48px" title="タップ: 0x005C&#10;ダブルタップ: 0x005C&#10;Shift+: 0x005C&#10;Ctrl+: 0x005C&#10;0x005C"><span class="kt sz10">0x005C</span></div>
+<div class="key" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: 0x005D&#10;ダブルタップ: 0x005D&#10;Shift+: 0x005D&#10;Ctrl+: 0x005D&#10;0x005D"><span class="kt sz10">0x005D</span></div>
+<div class="key" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: 0x005E&#10;ダブルタップ: 0x005E&#10;Shift+: 0x005E&#10;Ctrl+: 0x005E&#10;0x005E"><span class="kt sz10">0x005E</span></div>
+<div class="key" style="left:0px;top:234px;width:113px;height:48px" title="タップ: LShift&#10;ダブルタップ: LShift&#10;Shift+: LShift&#10;Ctrl+: LShift&#10;KC_LEFT_SHIFT"><span class="kt sz10">LShift</span></div>
+<div class="key" style="left:117px;top:234px;width:48px;height:48px" title="タップ: Z&#10;ホールド: LShift&#10;ダブルタップ: Z&#10;Shift+: Z&#10;Ctrl+: Z&#10;MT(MOD_LSFT, KC_Z)"><span class="kt">Z</span><span class="kh sz10">LShift</span></div>
+<div class="key" style="left:169px;top:234px;width:48px;height:48px" title="タップ: X&#10;ダブルタップ: X&#10;Shift+: X&#10;Ctrl+: X&#10;KC_X"><span class="kt">X</span></div>
+<div class="key" style="left:221px;top:234px;width:48px;height:48px" title="タップ: C&#10;ダブルタップ: C&#10;Shift+: C&#10;Ctrl+: C&#10;KC_C"><span class="kt">C</span></div>
+<div class="key" style="left:273px;top:234px;width:48px;height:48px" title="タップ: V&#10;ダブルタップ: V&#10;Shift+: V&#10;Ctrl+: V&#10;KC_V"><span class="kt">V</span></div>
+<div class="key" style="left:325px;top:234px;width:48px;height:48px" title="タップ: B&#10;ダブルタップ: B&#10;Shift+: B&#10;Ctrl+: B&#10;KC_B"><span class="kt">B</span></div>
+<div class="key" style="left:377px;top:234px;width:48px;height:48px" title="タップ: N&#10;ダブルタップ: N&#10;Shift+: N&#10;Ctrl+: N&#10;KC_N"><span class="kt">N</span></div>
+<div class="key" style="left:429px;top:234px;width:48px;height:48px" title="タップ: M&#10;ダブルタップ: M&#10;Shift+: M&#10;Ctrl+: M&#10;KC_M"><span class="kt">M</span></div>
+<div class="key" style="left:481px;top:234px;width:48px;height:48px" title="タップ: ,&#10;ダブルタップ: ,&#10;Shift+: ,&#10;Ctrl+: ,&#10;KC_COMMA"><span class="kt">,</span></div>
+<div class="key" style="left:533px;top:234px;width:48px;height:48px" title="タップ: .&#10;ダブルタップ: .&#10;Shift+: .&#10;Ctrl+: .&#10;KC_DOT"><span class="kt">.</span></div>
+<div class="key" style="left:585px;top:234px;width:48px;height:48px" title="タップ: /&#10;ホールド: RShift&#10;ダブルタップ: /&#10;Shift+: /&#10;Ctrl+: /&#10;MT(MOD_RSFT, KC_SLASH)"><span class="kt">/</span><span class="kh sz10">RShift</span></div>
+<div class="key" style="left:637px;top:234px;width:139px;height:48px" title="タップ: RShift&#10;ダブルタップ: RShift&#10;Shift+: RShift&#10;Ctrl+: RShift&#10;KC_RIGHT_SHIFT"><span class="kt sz10">RShift</span></div>
+<div class="key" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ↑&#10;ダブルタップ: ↑&#10;Shift+: ↑&#10;Ctrl+: ↑&#10;KC_UP"><span class="kt">↑</span></div>
+<div class="key" style="left:975px;top:234px;width:48px;height:48px" title="タップ: 0x0059&#10;ダブルタップ: 0x0059&#10;Shift+: 0x0059&#10;Ctrl+: 0x0059&#10;0x0059"><span class="kt sz10">0x0059</span></div>
+<div class="key" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: 0x005A&#10;ダブルタップ: 0x005A&#10;Shift+: 0x005A&#10;Ctrl+: 0x005A&#10;0x005A"><span class="kt sz10">0x005A</span></div>
+<div class="key" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: 0x005B&#10;ダブルタップ: 0x005B&#10;Shift+: 0x005B&#10;Ctrl+: 0x005B&#10;0x005B"><span class="kt sz10">0x005B</span></div>
+<div class="key" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: 0x0058&#10;ダブルタップ: 0x0058&#10;Shift+: 0x0058&#10;Ctrl+: 0x0058&#10;0x0058"><span class="kt sz10">0x0058</span></div>
+<div class="key" style="left:0px;top:286px;width:61px;height:48px" title="タップ: LCtrl&#10;ダブルタップ: LCtrl&#10;Shift+: LCtrl&#10;Ctrl+: LCtrl&#10;KC_LEFT_CTRL"><span class="kt">LCtrl</span></div>
+<div class="key" style="left:65px;top:286px;width:61px;height:48px" title="タップ: LWin&#10;ダブルタップ: LWin&#10;Shift+: LWin&#10;Ctrl+: LWin&#10;KC_LEFT_GUI"><span class="kt">LWin</span></div>
+<div class="key" style="left:130px;top:286px;width:61px;height:48px" title="タップ: LAlt&#10;ダブルタップ: LAlt&#10;Shift+: LAlt&#10;Ctrl+: LAlt&#10;KC_LEFT_ALT"><span class="kt">LAlt</span></div>
+<div class="key" style="left:195px;top:286px;width:321px;height:48px" title="タップ: Space&#10;ホールド: L2&#10;ダブルタップ: Space&#10;Shift+: Space&#10;Ctrl+: Space&#10;LT(2, KC_SPACE)"><span class="kt">Space</span><span class="kh">L2</span></div>
+<div class="key" style="left:520px;top:286px;width:61px;height:48px" title="タップ: L1&#10;ダブルタップ: L1&#10;Shift+: L1&#10;Ctrl+: L1&#10;MO(1)"><span class="kt">L1</span></div>
+<div class="key" style="left:585px;top:286px;width:61px;height:48px" title="タップ: RWin&#10;ダブルタップ: RWin&#10;Shift+: RWin&#10;Ctrl+: RWin&#10;KC_RIGHT_GUI"><span class="kt">RWin</span></div>
+<div class="key" style="left:650px;top:286px;width:61px;height:48px" title="タップ: Menu&#10;ダブルタップ: Menu&#10;Shift+: Menu&#10;Ctrl+: Menu&#10;KC_APPLICATION"><span class="kt">Menu</span></div>
+<div class="key" style="left:715px;top:286px;width:61px;height:48px" title="タップ: RCtrl&#10;ダブルタップ: RCtrl&#10;Shift+: RCtrl&#10;Ctrl+: RCtrl&#10;KC_RIGHT_CTRL"><span class="kt">RCtrl</span></div>
+<div class="key" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ←&#10;ダブルタップ: ←&#10;Shift+: ←&#10;Ctrl+: ←&#10;KC_LEFT"><span class="kt">←</span></div>
+<div class="key" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ↓&#10;ダブルタップ: ↓&#10;Shift+: ↓&#10;Ctrl+: ↓&#10;KC_DOWN"><span class="kt">↓</span></div>
+<div class="key" style="left:910px;top:286px;width:48px;height:48px" title="タップ: →&#10;ダブルタップ: →&#10;Shift+: →&#10;Ctrl+: →&#10;KC_RIGHT"><span class="kt">→</span></div>
+<div class="key" style="left:975px;top:286px;width:100px;height:48px" title="タップ: 0x0062&#10;ダブルタップ: 0x0062&#10;Shift+: 0x0062&#10;Ctrl+: 0x0062&#10;0x0062"><span class="kt sz10">0x0062</span></div>
+<div class="key" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: 0x0063&#10;ダブルタップ: 0x0063&#10;Shift+: 0x0063&#10;Ctrl+: 0x0063&#10;0x0063"><span class="kt sz10">0x0063</span></div>
+</div>
+</td>
+</tr>
+<tr>
+<th class="fig-layer">Layer 1</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key trans" style="left:0px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:338px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:390px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:442px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:494px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:728px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:52px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:312px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:364px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:416px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:468px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:520px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:78px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:78px;top:130px;width:48px;height:48px" title="タップ: 1&#10;ダブルタップ: 1&#10;Shift+: 1&#10;Ctrl+: 1&#10;KC_1"><span class="kt">1</span></div>
+<div class="key" style="left:130px;top:130px;width:48px;height:48px" title="タップ: 2&#10;ダブルタップ: 2&#10;Shift+: 2&#10;Ctrl+: 2&#10;KC_2"><span class="kt">2</span></div>
+<div class="key" style="left:182px;top:130px;width:48px;height:48px" title="タップ: 3&#10;ダブルタップ: 3&#10;Shift+: 3&#10;Ctrl+: 3&#10;KC_3"><span class="kt">3</span></div>
+<div class="key" style="left:234px;top:130px;width:48px;height:48px" title="タップ: 4&#10;ダブルタップ: 4&#10;Shift+: 4&#10;Ctrl+: 4&#10;KC_4"><span class="kt">4</span></div>
+<div class="key" style="left:286px;top:130px;width:48px;height:48px" title="タップ: 5&#10;ダブルタップ: 5&#10;Shift+: 5&#10;Ctrl+: 5&#10;KC_5"><span class="kt">5</span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: 6&#10;ダブルタップ: 6&#10;Shift+: 6&#10;Ctrl+: 6&#10;KC_6"><span class="kt">6</span></div>
+<div class="key" style="left:390px;top:130px;width:48px;height:48px" title="タップ: 7&#10;ダブルタップ: 7&#10;Shift+: 7&#10;Ctrl+: 7&#10;KC_7"><span class="kt">7</span></div>
+<div class="key" style="left:442px;top:130px;width:48px;height:48px" title="タップ: 8&#10;ダブルタップ: 8&#10;Shift+: 8&#10;Ctrl+: 8&#10;KC_8"><span class="kt">8</span></div>
+<div class="key" style="left:494px;top:130px;width:48px;height:48px" title="タップ: 9&#10;ダブルタップ: 9&#10;Shift+: 9&#10;Ctrl+: 9&#10;KC_9"><span class="kt">9</span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: 0&#10;ダブルタップ: 0&#10;Shift+: 0&#10;Ctrl+: 0&#10;KC_0"><span class="kt">0</span></div>
+<div class="key trans" style="left:598px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:702px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:0px;top:182px;width:87px;height:48px" title="タップ: L3&#10;ダブルタップ: L3&#10;Shift+: L3&#10;Ctrl+: L3&#10;MO(3)"><span class="kt">L3</span></div>
+<div class="key" style="left:91px;top:182px;width:48px;height:48px" title="タップ: Tab&#10;ホールド: LCtrl&#10;ダブルタップ: Tab&#10;Shift+: Tab&#10;Ctrl+: Tab&#10;MT(MOD_LCTL, KC_TAB)"><span class="kt">Tab</span><span class="kh">LCtrl</span></div>
+<div class="key" style="left:143px;top:182px;width:48px;height:48px" title="タップ: &#96;&#10;ダブルタップ: &#96;&#10;Shift+: &#96;&#10;Ctrl+: &#96;&#10;KC_GRAVE"><span class="kt">&#96;</span></div>
+<div class="key" style="left:195px;top:182px;width:48px;height:48px" title="タップ: [&#10;ダブルタップ: [&#10;Shift+: [&#10;Ctrl+: [&#10;KC_LEFT_BRACKET"><span class="kt">[</span></div>
+<div class="key" style="left:247px;top:182px;width:48px;height:48px" title="タップ: ]&#10;ダブルタップ: ]&#10;Shift+: ]&#10;Ctrl+: ]&#10;KC_RIGHT_BRACKET"><span class="kt">]</span></div>
+<div class="key" style="left:299px;top:182px;width:48px;height:48px" title="タップ: Del&#10;ダブルタップ: Del&#10;Shift+: Del&#10;Ctrl+: Del&#10;KC_DELETE"><span class="kt">Del</span></div>
+<div class="key" style="left:351px;top:182px;width:48px;height:48px" title="タップ: BS&#10;ダブルタップ: BS&#10;Shift+: BS&#10;Ctrl+: BS&#10;KC_BACKSPACE"><span class="kt">BS</span></div>
+<div class="key" style="left:403px;top:182px;width:48px;height:48px" title="タップ: ;&#10;ダブルタップ: ;&#10;Shift+: ;&#10;Ctrl+: ;&#10;KC_SEMICOLON"><span class="kt">;</span></div>
+<div class="key" style="left:455px;top:182px;width:48px;height:48px" title="タップ: '&#10;ダブルタップ: '&#10;Shift+: '&#10;Ctrl+: '&#10;KC_QUOTE"><span class="kt">'</span></div>
+<div class="key" style="left:507px;top:182px;width:48px;height:48px" title="タップ: &#92;&#10;ダブルタップ: &#92;&#10;Shift+: &#92;&#10;Ctrl+: &#92;&#10;KC_BACKSLASH"><span class="kt">&#92;</span></div>
+<div class="key trans" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:611px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:663px;top:182px;width:113px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:975px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:234px;width:113px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:117px;top:234px;width:48px;height:48px" title="タップ: Esc&#10;ホールド: LShift&#10;ダブルタップ: Esc&#10;Shift+: Esc&#10;Ctrl+: Esc&#10;MT(MOD_LSFT, KC_ESCAPE)"><span class="kt">Esc</span><span class="kh sz10">LShift</span></div>
+<div class="key none" style="left:169px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:221px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:273px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:325px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:377px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:429px;top:234px;width:48px;height:48px" title="タップ: =&#10;ダブルタップ: =&#10;Shift+: =&#10;Ctrl+: =&#10;KC_EQUAL"><span class="kt">=</span></div>
+<div class="key trans" style="left:481px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:533px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:585px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:637px;top:234px;width:139px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:65px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:130px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:195px;top:286px;width:321px;height:48px" title="タップ: Space&#10;ホールド: L3&#10;ダブルタップ: Space&#10;Shift+: Space&#10;Ctrl+: Space&#10;LT(3, KC_SPACE)"><span class="kt">Space</span><span class="kh">L3</span></div>
+<div class="key none" style="left:520px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:585px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:715px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:286px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+</div>
+</td>
+</tr>
+<tr>
+<th class="fig-layer">Layer 2</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key trans" style="left:0px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:338px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:390px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:442px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:494px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:728px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:52px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:312px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:364px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:416px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:468px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:520px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:572px;top:78px;width:48px;height:48px" title="タップ: RCtrl&#10;ダブルタップ: RCtrl&#10;Shift+: RCtrl&#10;Ctrl+: RCtrl&#10;KC_RIGHT_CTRL"><span class="kt">RCtrl</span></div>
+<div class="key trans" style="left:624px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:78px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:78px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:130px;top:130px;width:48px;height:48px" title="タップ: ZMK w&#10;ダブルタップ: ZMK w&#10;Shift+: ZMK w&#10;Ctrl+: ZMK w&#10;MM_VIM_W"><span class="kt">ZMK w</span></div>
+<div class="key" style="left:182px;top:130px;width:48px;height:48px" title="タップ: ⌃→&#10;ダブルタップ: ⌃→&#10;Shift+: ⌃→&#10;Ctrl+: ⌃→&#10;LCTL(KC_RIGHT)"><span class="kt">⌃→</span></div>
+<div class="key" style="left:234px;top:130px;width:48px;height:48px" title="タップ: ZMK C-r&#10;ダブルタップ: ZMK C-r&#10;Shift+: ZMK C-r&#10;Ctrl+: ZMK C-r&#10;MM_VIM_CTRL_R"><span class="kt sz9">ZMK C-r</span></div>
+<div class="key none" style="left:286px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: TD1&#10;ダブルタップ: TD1&#10;Shift+: TD1&#10;Ctrl+: TD1&#10;TD(1)"><span class="kt">TD1</span></div>
+<div class="key" style="left:390px;top:130px;width:48px;height:48px" title="タップ: ZMK u&#10;ダブルタップ: ZMK u&#10;Shift+: ZMK u&#10;Ctrl+: ZMK u&#10;MM_VIM_U"><span class="kt">ZMK u</span></div>
+<div class="key none" style="left:442px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:494px;top:130px;width:48px;height:48px" title="タップ: ZMK o&#10;ダブルタップ: ZMK o&#10;Shift+: ZMK o&#10;Ctrl+: ZMK o&#10;MM_VIM_O"><span class="kt">ZMK o</span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: ⌃V&#10;ダブルタップ: ⌃V&#10;Shift+: ⌃V&#10;Ctrl+: ⌃V&#10;LCTL(KC_V)"><span class="kt">⌃V</span></div>
+<div class="key trans" style="left:598px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:702px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:182px;width:87px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:91px;top:182px;width:48px;height:48px" title="タップ: LCtrl&#10;ダブルタップ: LCtrl&#10;Shift+: LCtrl&#10;Ctrl+: LCtrl&#10;KC_LEFT_CTRL"><span class="kt">LCtrl</span></div>
+<div class="key none" style="left:143px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:195px;top:182px;width:48px;height:48px" title="タップ: TD0&#10;ダブルタップ: TD0&#10;Shift+: TD0&#10;Ctrl+: TD0&#10;TD(0)"><span class="kt">TD0</span></div>
+<div class="key none" style="left:247px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:299px;top:182px;width:48px;height:48px" title="タップ: TD2&#10;ダブルタップ: TD2&#10;Shift+: TD2&#10;Ctrl+: TD2&#10;TD(2)"><span class="kt">TD2</span></div>
+<div class="key" style="left:351px;top:182px;width:48px;height:48px" title="タップ: ←&#10;ダブルタップ: ←&#10;Shift+: ←&#10;Ctrl+: ←&#10;KC_LEFT"><span class="kt">←</span></div>
+<div class="key" style="left:403px;top:182px;width:48px;height:48px" title="タップ: ↓&#10;ダブルタップ: ↓&#10;Shift+: ↓&#10;Ctrl+: ↓&#10;KC_DOWN"><span class="kt">↓</span></div>
+<div class="key" style="left:455px;top:182px;width:48px;height:48px" title="タップ: ↑&#10;ダブルタップ: ↑&#10;Shift+: ↑&#10;Ctrl+: ↑&#10;KC_UP"><span class="kt">↑</span></div>
+<div class="key" style="left:507px;top:182px;width:48px;height:48px" title="タップ: →&#10;ダブルタップ: →&#10;Shift+: →&#10;Ctrl+: →&#10;KC_RIGHT"><span class="kt">→</span></div>
+<div class="key trans" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:611px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:663px;top:182px;width:113px;height:48px" title="タップ: Enter&#10;ホールド: L3&#10;ダブルタップ: Enter&#10;Shift+: Enter&#10;Ctrl+: Enter&#10;LT(3, KC_ENTER)"><span class="kt">Enter</span><span class="kh">L3</span></div>
+<div class="key trans" style="left:975px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:234px;width:113px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:117px;top:234px;width:48px;height:48px" title="タップ: LShift&#10;ダブルタップ: LShift&#10;Shift+: LShift&#10;Ctrl+: LShift&#10;KC_LEFT_SHIFT"><span class="kt sz10">LShift</span></div>
+<div class="key" style="left:169px;top:234px;width:48px;height:48px" title="タップ: Del&#10;ダブルタップ: Del&#10;Shift+: Del&#10;Ctrl+: Del&#10;KC_DELETE"><span class="kt">Del</span></div>
+<div class="key none" style="left:221px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:273px;top:234px;width:48px;height:48px" title="タップ: ⇒L4&#10;ダブルタップ: ⇒L4&#10;Shift+: ⇒L4&#10;Ctrl+: ⇒L4&#10;TO(4)"><span class="kt">⇒L4</span></div>
+<div class="key" style="left:325px;top:234px;width:48px;height:48px" title="タップ: ⌃←&#10;ダブルタップ: ⌃←&#10;Shift+: ⌃←&#10;Ctrl+: ⌃←&#10;LCTL(KC_LEFT)"><span class="kt">⌃←</span></div>
+<div class="key" style="left:377px;top:234px;width:48px;height:48px" title="タップ: F3&#10;ダブルタップ: F3&#10;Shift+: F3&#10;Ctrl+: F3&#10;KC_F3"><span class="kt">F3</span></div>
+<div class="key none" style="left:429px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:481px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:533px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:585px;top:234px;width:48px;height:48px" title="タップ: RShift&#10;ダブルタップ: RShift&#10;Shift+: RShift&#10;Ctrl+: RShift&#10;KC_RIGHT_SHIFT"><span class="kt sz10">RShift</span></div>
+<div class="key trans" style="left:637px;top:234px;width:139px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:65px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:130px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:195px;top:286px;width:321px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:520px;top:286px;width:61px;height:48px" title="タップ: L3&#10;ダブルタップ: L3&#10;Shift+: L3&#10;Ctrl+: L3&#10;MO(3)"><span class="kt">L3</span></div>
+<div class="key trans" style="left:585px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:715px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:286px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+</div>
+</td>
+</tr>
+<tr>
+<th class="fig-layer">Layer 3</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key trans" style="left:0px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:338px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:390px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:442px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:494px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:728px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:52px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:312px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:364px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:416px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:468px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:520px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:572px;top:78px;width:48px;height:48px" title="タップ: RCtrl&#10;ダブルタップ: RCtrl&#10;Shift+: RCtrl&#10;Ctrl+: RCtrl&#10;KC_RIGHT_CTRL"><span class="kt">RCtrl</span></div>
+<div class="key trans" style="left:624px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:78px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:78px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:130px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:182px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:234px;top:130px;width:48px;height:48px" title="タップ: ZMK $&#10;ダブルタップ: ZMK $&#10;Shift+: ZMK $&#10;Ctrl+: ZMK $&#10;MM_VIM_SHIFT_4"><span class="kt">ZMK $</span></div>
+<div class="key none" style="left:286px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: ZMK ^&#10;ダブルタップ: ZMK ^&#10;Shift+: ZMK ^&#10;Ctrl+: ZMK ^&#10;MM_VIM_SHIFT_6"><span class="kt">ZMK ^</span></div>
+<div class="key none" style="left:390px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:442px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:494px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: Home&#10;ダブルタップ: Home&#10;Shift+: Home&#10;Ctrl+: Home&#10;KC_HOME"><span class="kt">Home</span></div>
+<div class="key trans" style="left:598px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:702px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:182px;width:87px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:91px;top:182px;width:48px;height:48px" title="タップ: LCtrl&#10;ダブルタップ: LCtrl&#10;Shift+: LCtrl&#10;Ctrl+: LCtrl&#10;KC_LEFT_CTRL"><span class="kt">LCtrl</span></div>
+<div class="key none" style="left:143px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:195px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:247px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:299px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:351px;top:182px;width:48px;height:48px" title="タップ: ←&#10;ダブルタップ: ←&#10;Shift+: ←&#10;Ctrl+: ←&#10;KC_LEFT"><span class="kt">←</span></div>
+<div class="key none" style="left:403px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:455px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:507px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:611px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:663px;top:182px;width:113px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:975px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:234px;width:113px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:117px;top:234px;width:48px;height:48px" title="タップ: LShift&#10;ダブルタップ: LShift&#10;Shift+: LShift&#10;Ctrl+: LShift&#10;KC_LEFT_SHIFT"><span class="kt sz10">LShift</span></div>
+<div class="key none" style="left:169px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:221px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:273px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:325px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:377px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:429px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:481px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:533px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:585px;top:234px;width:48px;height:48px" title="タップ: RShift&#10;ダブルタップ: RShift&#10;Shift+: RShift&#10;Ctrl+: RShift&#10;KC_RIGHT_SHIFT"><span class="kt sz10">RShift</span></div>
+<div class="key trans" style="left:637px;top:234px;width:139px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:65px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:130px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:195px;top:286px;width:321px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:520px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:585px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:715px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:286px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+</div>
+</td>
+</tr>
+<tr>
+<th class="fig-layer">Layer 4</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key trans" style="left:0px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:338px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:390px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:442px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:494px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:728px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:78px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:52px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:312px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:364px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:416px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:468px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:520px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:572px;top:78px;width:48px;height:48px" title="タップ: RCtrl&#10;ダブルタップ: RCtrl&#10;Shift+: RCtrl&#10;Ctrl+: RCtrl&#10;KC_RIGHT_CTRL"><span class="kt">RCtrl</span></div>
+<div class="key trans" style="left:624px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:78px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:78px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:130px;top:130px;width:48px;height:48px" title="タップ: ⇧⌃→&#10;ダブルタップ: ⇧⌃→&#10;Shift+: ⇧⌃→&#10;Ctrl+: ⇧⌃→&#10;LSFT(LCTL(KC_RIGHT))"><span class="kt sz10">⇧⌃→</span></div>
+<div class="key" style="left:182px;top:130px;width:48px;height:48px" title="タップ: ⇧⌃→&#10;ダブルタップ: ⇧⌃→&#10;Shift+: ⇧⌃→&#10;Ctrl+: ⇧⌃→&#10;LSFT(LCTL(KC_RIGHT))"><span class="kt sz10">⇧⌃→</span></div>
+<div class="key none" style="left:234px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:286px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: M7&#10;ダブルタップ: M7&#10;Shift+: M7&#10;Ctrl+: M7&#10;QK_MACRO_7"><span class="kt">M7</span></div>
+<div class="key none" style="left:390px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:442px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:494px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: M9&#10;ダブルタップ: M9&#10;Shift+: M9&#10;Ctrl+: M9&#10;QK_MACRO_9"><span class="kt">M9</span></div>
+<div class="key trans" style="left:598px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:702px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:182px;width:87px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:91px;top:182px;width:48px;height:48px" title="タップ: LCtrl&#10;ダブルタップ: LCtrl&#10;Shift+: LCtrl&#10;Ctrl+: LCtrl&#10;KC_LEFT_CTRL"><span class="kt">LCtrl</span></div>
+<div class="key none" style="left:143px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:195px;top:182px;width:48px;height:48px" title="タップ: M8&#10;ダブルタップ: M8&#10;Shift+: M8&#10;Ctrl+: M8&#10;QK_MACRO_8"><span class="kt">M8</span></div>
+<div class="key none" style="left:247px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:299px;top:182px;width:48px;height:48px" title="タップ: TD3&#10;ダブルタップ: TD3&#10;Shift+: TD3&#10;Ctrl+: TD3&#10;TD(3)"><span class="kt">TD3</span></div>
+<div class="key" style="left:351px;top:182px;width:48px;height:48px" title="タップ: ⇧←&#10;ダブルタップ: ⇧←&#10;Shift+: ⇧←&#10;Ctrl+: ⇧←&#10;LSFT(KC_LEFT)"><span class="kt">⇧←</span></div>
+<div class="key" style="left:403px;top:182px;width:48px;height:48px" title="タップ: ⇧↓&#10;ダブルタップ: ⇧↓&#10;Shift+: ⇧↓&#10;Ctrl+: ⇧↓&#10;LSFT(KC_DOWN)"><span class="kt">⇧↓</span></div>
+<div class="key" style="left:455px;top:182px;width:48px;height:48px" title="タップ: ⇧↑&#10;ダブルタップ: ⇧↑&#10;Shift+: ⇧↑&#10;Ctrl+: ⇧↑&#10;LSFT(KC_UP)"><span class="kt">⇧↑</span></div>
+<div class="key" style="left:507px;top:182px;width:48px;height:48px" title="タップ: ⇧→&#10;ダブルタップ: ⇧→&#10;Shift+: ⇧→&#10;Ctrl+: ⇧→&#10;LSFT(KC_RIGHT)"><span class="kt">⇧→</span></div>
+<div class="key trans" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:611px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:663px;top:182px;width:113px;height:48px" title="タップ: L5&#10;ダブルタップ: L5&#10;Shift+: L5&#10;Ctrl+: L5&#10;MO(5)"><span class="kt">L5</span></div>
+<div class="key trans" style="left:975px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:234px;width:113px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:117px;top:234px;width:48px;height:48px" title="タップ: LShift&#10;ダブルタップ: LShift&#10;Shift+: LShift&#10;Ctrl+: LShift&#10;KC_LEFT_SHIFT"><span class="kt sz10">LShift</span></div>
+<div class="key" style="left:169px;top:234px;width:48px;height:48px" title="タップ: M8&#10;ダブルタップ: M8&#10;Shift+: M8&#10;Ctrl+: M8&#10;QK_MACRO_8"><span class="kt">M8</span></div>
+<div class="key none" style="left:221px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:273px;top:234px;width:48px;height:48px" title="タップ: M11&#10;ダブルタップ: M11&#10;Shift+: M11&#10;Ctrl+: M11&#10;QK_MACRO_11"><span class="kt">M11</span></div>
+<div class="key" style="left:325px;top:234px;width:48px;height:48px" title="タップ: ⇧⌃←&#10;ダブルタップ: ⇧⌃←&#10;Shift+: ⇧⌃←&#10;Ctrl+: ⇧⌃←&#10;LSFT(LCTL(KC_LEFT))"><span class="kt sz10">⇧⌃←</span></div>
+<div class="key" style="left:377px;top:234px;width:48px;height:48px" title="タップ: F3&#10;ダブルタップ: F3&#10;Shift+: F3&#10;Ctrl+: F3&#10;KC_F3"><span class="kt">F3</span></div>
+<div class="key none" style="left:429px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:481px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:533px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:585px;top:234px;width:48px;height:48px" title="タップ: RShift&#10;ダブルタップ: RShift&#10;Shift+: RShift&#10;Ctrl+: RShift&#10;KC_RIGHT_SHIFT"><span class="kt sz10">RShift</span></div>
+<div class="key trans" style="left:637px;top:234px;width:139px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:65px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:130px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:195px;top:286px;width:321px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:520px;top:286px;width:61px;height:48px" title="タップ: L5&#10;ダブルタップ: L5&#10;Shift+: L5&#10;Ctrl+: L5&#10;MO(5)"><span class="kt">L5</span></div>
+<div class="key trans" style="left:585px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:715px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:286px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+</div>
+</td>
+</tr>
+<tr>
+<th class="fig-layer">Layer 5</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key trans" style="left:0px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:338px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:390px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:442px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:494px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:728px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:78px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:52px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:312px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:364px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:416px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:468px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:520px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:572px;top:78px;width:48px;height:48px" title="タップ: RCtrl&#10;ダブルタップ: RCtrl&#10;Shift+: RCtrl&#10;Ctrl+: RCtrl&#10;KC_RIGHT_CTRL"><span class="kt">RCtrl</span></div>
+<div class="key trans" style="left:624px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:78px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:78px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:130px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:182px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:234px;top:130px;width:48px;height:48px" title="タップ: ZMK v$&#10;ダブルタップ: ZMK v$&#10;Shift+: ZMK v$&#10;Ctrl+: ZMK v$&#10;MM_VIM_VISUAL_SHIFT_4"><span class="kt sz10">ZMK v$</span></div>
+<div class="key none" style="left:286px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: ZMK v^&#10;ダブルタップ: ZMK v^&#10;Shift+: ZMK v^&#10;Ctrl+: ZMK v^&#10;MM_VIM_VISUAL_SHIFT_6"><span class="kt sz10">ZMK v^</span></div>
+<div class="key none" style="left:390px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:442px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:494px;top:130px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: ⇧Home&#10;ダブルタップ: ⇧Home&#10;Shift+: ⇧Home&#10;Ctrl+: ⇧Home&#10;LSFT(KC_HOME)"><span class="kt sz10">⇧Home</span></div>
+<div class="key trans" style="left:598px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:702px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:182px;width:87px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:91px;top:182px;width:48px;height:48px" title="タップ: LCtrl&#10;ダブルタップ: LCtrl&#10;Shift+: LCtrl&#10;Ctrl+: LCtrl&#10;KC_LEFT_CTRL"><span class="kt">LCtrl</span></div>
+<div class="key none" style="left:143px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:195px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:247px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:299px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:351px;top:182px;width:48px;height:48px" title="タップ: ⇧←&#10;ダブルタップ: ⇧←&#10;Shift+: ⇧←&#10;Ctrl+: ⇧←&#10;LSFT(KC_LEFT)"><span class="kt">⇧←</span></div>
+<div class="key none" style="left:403px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:455px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:507px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:611px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:663px;top:182px;width:113px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:975px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:234px;width:113px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:117px;top:234px;width:48px;height:48px" title="タップ: LShift&#10;ダブルタップ: LShift&#10;Shift+: LShift&#10;Ctrl+: LShift&#10;KC_LEFT_SHIFT"><span class="kt sz10">LShift</span></div>
+<div class="key none" style="left:169px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:221px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:273px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:325px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:377px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:429px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:481px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:533px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:585px;top:234px;width:48px;height:48px" title="タップ: RShift&#10;ダブルタップ: RShift&#10;Shift+: RShift&#10;Ctrl+: RShift&#10;KC_RIGHT_SHIFT"><span class="kt sz10">RShift</span></div>
+<div class="key trans" style="left:637px;top:234px;width:139px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:65px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:130px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:195px;top:286px;width:321px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:520px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:585px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:715px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:286px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+</div>
+</td>
+</tr>
+<tr>
+<th class="fig-layer">Layer 6</th>
+<td class="fig-cell">
+<div class="kb" style="width:1183px;height:338px">
+<div class="key trans" style="left:0px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:338px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:390px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:442px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:494px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:572px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:624px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:728px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:0px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:78px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:52px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:104px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:156px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:208px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:260px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:312px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:364px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:416px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:468px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:520px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:572px;top:78px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:624px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:676px;top:78px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:78px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key" style="left:78px;top:130px;width:48px;height:48px" title="タップ: F1&#10;ダブルタップ: F1&#10;Shift+: F1&#10;Ctrl+: F1&#10;KC_F1"><span class="kt">F1</span></div>
+<div class="key" style="left:130px;top:130px;width:48px;height:48px" title="タップ: F2&#10;ダブルタップ: F2&#10;Shift+: F2&#10;Ctrl+: F2&#10;KC_F2"><span class="kt">F2</span></div>
+<div class="key" style="left:182px;top:130px;width:48px;height:48px" title="タップ: F3&#10;ダブルタップ: F3&#10;Shift+: F3&#10;Ctrl+: F3&#10;KC_F3"><span class="kt">F3</span></div>
+<div class="key" style="left:234px;top:130px;width:48px;height:48px" title="タップ: F4&#10;ダブルタップ: F4&#10;Shift+: F4&#10;Ctrl+: F4&#10;KC_F4"><span class="kt">F4</span></div>
+<div class="key" style="left:286px;top:130px;width:48px;height:48px" title="タップ: F5&#10;ダブルタップ: F5&#10;Shift+: F5&#10;Ctrl+: F5&#10;KC_F5"><span class="kt">F5</span></div>
+<div class="key" style="left:338px;top:130px;width:48px;height:48px" title="タップ: F6&#10;ダブルタップ: F6&#10;Shift+: F6&#10;Ctrl+: F6&#10;KC_F6"><span class="kt">F6</span></div>
+<div class="key" style="left:390px;top:130px;width:48px;height:48px" title="タップ: F7&#10;ダブルタップ: F7&#10;Shift+: F7&#10;Ctrl+: F7&#10;KC_F7"><span class="kt">F7</span></div>
+<div class="key" style="left:442px;top:130px;width:48px;height:48px" title="タップ: F8&#10;ダブルタップ: F8&#10;Shift+: F8&#10;Ctrl+: F8&#10;KC_F8"><span class="kt">F8</span></div>
+<div class="key" style="left:494px;top:130px;width:48px;height:48px" title="タップ: F9&#10;ダブルタップ: F9&#10;Shift+: F9&#10;Ctrl+: F9&#10;KC_F9"><span class="kt">F9</span></div>
+<div class="key" style="left:546px;top:130px;width:48px;height:48px" title="タップ: F10&#10;ダブルタップ: F10&#10;Shift+: F10&#10;Ctrl+: F10&#10;KC_F10"><span class="kt">F10</span></div>
+<div class="key trans" style="left:598px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:702px;top:130px;width:74px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:130px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:130px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:0px;top:182px;width:87px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:91px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:143px;top:182px;width:48px;height:48px" title="タップ: REBOOT&#10;ダブルタップ: REBOOT&#10;Shift+: REBOOT&#10;Ctrl+: REBOOT&#10;QK_RBT"><span class="kt sz10">REBOOT</span></div>
+<div class="key none" style="left:195px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:247px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:299px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:351px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:403px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:455px;top:182px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:507px;top:182px;width:48px;height:48px" title="タップ: REBOOT&#10;ダブルタップ: REBOOT&#10;Shift+: REBOOT&#10;Ctrl+: REBOOT&#10;QK_RBT"><span class="kt sz10">REBOOT</span></div>
+<div class="key trans" style="left:559px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:611px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:663px;top:182px;width:113px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:975px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:182px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:234px;width:113px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:117px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:169px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:221px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:273px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key" style="left:325px;top:234px;width:48px;height:48px" title="タップ: BOOT&#10;ダブルタップ: BOOT&#10;Shift+: BOOT&#10;Ctrl+: BOOT&#10;QK_BOOT"><span class="kt">BOOT</span></div>
+<div class="key" style="left:377px;top:234px;width:48px;height:48px" title="タップ: BOOT&#10;ダブルタップ: BOOT&#10;Shift+: BOOT&#10;Ctrl+: BOOT&#10;QK_BOOT"><span class="kt">BOOT</span></div>
+<div class="key none" style="left:429px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:481px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:533px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:585px;top:234px;width:48px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:637px;top:234px;width:139px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1027px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:234px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1131px;top:234px;width:48px;height:100px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:0px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key none" style="left:65px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:130px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:195px;top:286px;width:321px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key none" style="left:520px;top:286px;width:61px;height:48px" title="&amp;none"><span class="kt"></span></div>
+<div class="key trans" style="left:585px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:650px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:715px;top:286px;width:61px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:806px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:858px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:910px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:975px;top:286px;width:100px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+<div class="key trans" style="left:1079px;top:286px;width:48px;height:48px" title="タップ: ▽&#10;ホールド: ▽&#10;ダブルタップ: ▽&#10;Shift+: ▽&#10;Ctrl+: ▽&#10;&amp;trans"><span class="kt">▽</span></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

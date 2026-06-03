@@ -1,0 +1,61 @@
+name: Update KEYMAP docs
+
+# Regenerate the physical-layout KEYMAP.html for the Keyboard Quantizer Mini's
+# bundled Vial keymap (keymaps/vial/KEYMAP.vil, the AroundForty-RB keymap
+# produced by zmk-keymap-docgen/zmk_to_vial.py) on its vial.json layout, using
+# the zmk-keymap-docgen submodule. Mirrors the ZMK KEYMAP.html docs flow.
+#
+# NOTE: the checkout is deliberately NON-recursive — only tools/keymap-docgen is
+# initialised — so CI does not pull the firmware submodules (chibios, lufa, …).
+
+on:
+  push:
+    paths:
+      - 'keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/KEYMAP.vil'
+      - 'keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/vial.json'
+      - 'tools/keymap-docgen'
+      - '.gitmodules'
+      - '.github/workflows/keymap-vial-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-keymap-vial-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (no submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Initialise only the keymap-docgen submodule
+        run: git submodule update --init tools/keymap-docgen
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Regenerate KEYMAP.html
+        run: |
+          python tools/keymap-docgen/vial_keymap_docgen.py \
+            keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/KEYMAP.vil \
+            --format vil \
+            --layout keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/vial.json \
+            -o KEYMAP.html \
+            --title "Keyboard Quantizer Mini (Vial / AroundForty-RB) キーマップ"
+
+      - name: Commit KEYMAP docs if changed
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add KEYMAP.html
+          if git diff --cached --quiet; then
+            echo "KEYMAP.html is up to date."
+          else
+            git commit -m "docs: regenerate KEYMAP.html from KEYMAP.vil"
+            git push origin HEAD:${GITHUB_REF#refs/heads/}
+          fi
