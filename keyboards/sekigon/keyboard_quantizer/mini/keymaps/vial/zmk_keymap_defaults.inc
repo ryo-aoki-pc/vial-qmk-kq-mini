@@ -259,13 +259,13 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
 
 static const vial_tap_dance_entry_t zmk_tap_dance_entries[] = {
     /* TD(0) td_vim_d */
-    {KC_NO, KC_NO, QK_MACRO_0, KC_NO, 150},
+    {KC_NO, KC_NO, QK_MACRO_0, KC_NO, 200},
     /* TD(1) td_vim_y */
-    {KC_NO, KC_NO, QK_MACRO_1, KC_NO, 150},
+    {KC_NO, KC_NO, QK_MACRO_1, KC_NO, 200},
     /* TD(2) td_vim_g */
-    {KC_NO, KC_NO, LCTL(KC_HOME), KC_NO, 150},
+    {KC_NO, KC_NO, LCTL(KC_HOME), KC_NO, 200},
     /* TD(3) td_vim_visual_g */
-    {KC_NO, KC_NO, LSFT(LCTL(KC_HOME)), KC_NO, 150},
+    {KC_NO, KC_NO, LSFT(LCTL(KC_HOME)), KC_NO, 200},
 };
 
 static const vial_key_override_entry_t zmk_key_override_entries[] = {
@@ -482,7 +482,7 @@ static const uint8_t zmk_macro_buffer[] = {
 /* Content hash of the bundled keymap. Stored in the high 16 bits of the
  * user EEPROM word so that flashing a firmware with a *changed* keymap
  * re-applies it on the next boot (see zmk_keymap_apply_if_outdated). */
-#define ZMK_KEYMAP_VERSION 0xFE37u
+#define ZMK_KEYMAP_VERSION 0xAB25u
 #define ZMK_KEYMAP_VERSION_SHIFT 16
 #define ZMK_KEYMAP_VERSION_MASK 0xFFFFu
 
