@@ -3,12 +3,22 @@
  * Source ZMK keymap : AroundForty-RB.keymap
  *
  * EEPROM defaults reproducing the ZMK keymap on the Keyboard Quantizer
- * Mini.  Applied from eeconfig_init_user() when the EEPROM is
- * (re)initialised, after dynamic_keymap_reset() has seeded the identity
- * pass-through keymap; only the cells that differ are overwritten here.
+ * Mini, applied on top of the identity pass-through keymap (only the
+ * cells that differ are overwritten).
  *
- * Include this file at the end of keymaps/vial/keymap.c:
- *     #include "zmk_keymap_defaults.inc"
+ * Integration in keymaps/vial/keymap.c:
+ *   1. Near the top, forward-declare the auto-apply entry point:
+ *        void zmk_keymap_apply_if_outdated(void);
+ *   2. At the END of keyboard_post_init_user(), call it:
+ *        zmk_keymap_apply_if_outdated();
+ *   3. At the end of the file, include this generated file:
+ *        #include "zmk_keymap_defaults.inc"
+ *
+ * zmk_keymap_apply_if_outdated() applies the bundled keymap once after
+ * flashing a firmware whose keymap differs from what is stored in EEPROM
+ * (so flashing alone applies it — no manual EEPROM reset or .vil load
+ * needed), while preserving the user's later Vial edits across reboots of
+ * the same firmware. eeconfig_init_user() covers the EEPROM-reset path.
  */
 
 #include "dynamic_keymap.h"
@@ -469,13 +479,14 @@ static const uint8_t zmk_macro_buffer[] = {
     0x00, 0x00, 0x00,
 };
 
-void eeconfig_init_user(void) {
-    /* Overriding eeconfig_init_user() suppresses QMK's weak default, so
-     * reproduce it: reset the user EEPROM area to blank. */
-#if (EECONFIG_USER_DATA_SIZE) == 0
-    eeconfig_update_user(0);
-#endif
+/* Content hash of the bundled keymap. Stored in the high 16 bits of the
+ * user EEPROM word so that flashing a firmware with a *changed* keymap
+ * re-applies it on the next boot (see zmk_keymap_apply_if_outdated). */
+#define ZMK_KEYMAP_VERSION 0xCA8Cu
+#define ZMK_KEYMAP_VERSION_SHIFT 16
+#define ZMK_KEYMAP_VERSION_MASK 0xFFFFu
 
+static void zmk_apply_keymap_defaults(void) {
     /* Keymap cells that differ from the pass-through default */
     for (size_t i = 0; i < ARRAY_SIZE(zmk_keymap_entries); i++) {
         dynamic_keymap_set_keycode(zmk_keymap_entries[i].layer,
@@ -510,4 +521,26 @@ void eeconfig_init_user(void) {
 
     /* Reload Vial runtime state from the EEPROM we just wrote */
     vial_init();
+}
+
+void eeconfig_init_user(void) {
+    /* Runs when the EEPROM is (re)initialised. Apply the bundled keymap
+     * and stamp its version (the low bits stay 0 = the keyboard's own
+     * user_config default, matching QMK's weak eeconfig_init_user). */
+    zmk_apply_keymap_defaults();
+    eeconfig_update_user((uint32_t)ZMK_KEYMAP_VERSION << ZMK_KEYMAP_VERSION_SHIFT);
+}
+
+/* Call once from keyboard_post_init_user(). Applies the bundled keymap
+ * the first time a firmware with this keymap version boots (so flashing
+ * applies it without a manual EEPROM reset), and preserves the user's
+ * later Vial edits on subsequent boots of the same version. */
+void zmk_keymap_apply_if_outdated(void) {
+    uint32_t raw = eeconfig_read_user();
+    if (((raw >> ZMK_KEYMAP_VERSION_SHIFT) & ZMK_KEYMAP_VERSION_MASK) != ZMK_KEYMAP_VERSION) {
+        zmk_apply_keymap_defaults();
+        raw = (raw & ~((uint32_t)ZMK_KEYMAP_VERSION_MASK << ZMK_KEYMAP_VERSION_SHIFT))
+              | ((uint32_t)ZMK_KEYMAP_VERSION << ZMK_KEYMAP_VERSION_SHIFT);
+        eeconfig_update_user(raw);
+    }
 }
