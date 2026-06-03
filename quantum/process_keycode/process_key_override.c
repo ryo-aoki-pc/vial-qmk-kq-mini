@@ -372,6 +372,17 @@ static bool try_activating_override(const uint16_t keycode, const uint8_t layer,
             if (IS_QK_MACRO(mod_free_replacement)) {
                 // Vial macros: fire immediately via the magic-position path so
                 // process_record_via -> dynamic_keymap_macro_send is invoked.
+                //
+                // The replacement macro manages its own modifiers (e.g. a macro
+                // that does Shift+End then Ctrl+X). suppressed_mods only masks
+                // the trigger mods out of the HID report, leaving them in
+                // real_mods, so the macro's own register_code(KC_LSFT) is a
+                // no-op and its Shift never reaches the report. Actually remove
+                // the trigger mods from real_mods and drop the suppression mask
+                // so the macro starts from a clean modifier state and its own
+                // modifier presses take effect.
+                del_mods(override->suppressed_mods);
+                clear_suppressed_override_mods();
                 send_keyboard_report();
                 wait_ms(QS_tap_code_delay);
                 vial_keycode_down(mod_free_replacement);

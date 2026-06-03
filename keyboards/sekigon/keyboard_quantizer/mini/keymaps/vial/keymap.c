@@ -75,6 +75,11 @@ static uint8_t get_gesture_threshold(void) {
     return 50;
 }
 
+// Applies the bundled AroundForty-RB keymap to EEPROM the first time a firmware
+// with a new keymap version boots. Defined in zmk_keymap_defaults.inc (included
+// at the end of this file).
+void zmk_keymap_apply_if_outdated(void);
+
 void keyboard_post_init_user(void) {
     set_mouse_gesture_threshold(get_gesture_threshold());
     os_key_override_init();
@@ -91,6 +96,8 @@ void keyboard_post_init_user(void) {
             register_jp_key_on_us_os_overrides();
             break;
     }
+
+    zmk_keymap_apply_if_outdated();
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -383,3 +390,7 @@ void dynamic_keymap_macro_send(uint8_t id) {
         }
     }
 }
+
+// EEPROM defaults generated from the AroundForty-RB ZMK keymap
+// (zmk-keymap-docgen/zmk_to_vial.py). Applied on EEPROM (re)initialisation.
+#include "zmk_keymap_defaults.inc"
