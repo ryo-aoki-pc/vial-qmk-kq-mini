@@ -25,3 +25,7 @@
 	path = lib/lvgl
 	url = https://github.com/qmk/lvgl.git
 	branch = release/v8.2
+[submodule "tools/keymap-docgen"]
+	path = tools/keymap-docgen
+	url = https://github.com/ryo-aoki-pc/zmk-keymap-docgen.git
+	branch = claude/sharp-galileo-9Mpv4
