@@ -1,7 +1,7 @@
-name: Update KEYMAP-vial docs
+name: Update KEYMAP docs
 
-# Regenerate the physical-layout KEYMAP-vial.html for the Keyboard Quantizer
-# Mini's bundled Vial keymap (keymaps/vial/KEYMAP.vil, the AroundForty-RB keymap
+# Regenerate the physical-layout KEYMAP.html for the Keyboard Quantizer Mini's
+# bundled Vial keymap (keymaps/vial/KEYMAP.vil, the AroundForty-RB keymap
 # produced by zmk-keymap-docgen/zmk_to_vial.py) on its vial.json layout, using
 # the zmk-keymap-docgen submodule. Mirrors the ZMK KEYMAP.html docs flow.
 #
@@ -38,24 +38,24 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Regenerate KEYMAP-vial.html
+      - name: Regenerate KEYMAP.html
         run: |
           python tools/keymap-docgen/vial_keymap_docgen.py \
             keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/KEYMAP.vil \
             --format vil \
             --layout keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/vial.json \
-            -o KEYMAP-vial.html \
+            -o KEYMAP.html \
             --title "Keyboard Quantizer Mini (Vial / AroundForty-RB) キーマップ"
 
-      - name: Commit KEYMAP-vial docs if changed
+      - name: Commit KEYMAP docs if changed
         if: github.event_name != 'pull_request'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add KEYMAP-vial.html
+          git add KEYMAP.html
           if git diff --cached --quiet; then
-            echo "KEYMAP-vial.html is up to date."
+            echo "KEYMAP.html is up to date."
           else
-            git commit -m "docs: regenerate KEYMAP-vial.html from KEYMAP.vil"
+            git commit -m "docs: regenerate KEYMAP.html from KEYMAP.vil"
             git push origin HEAD:${GITHUB_REF#refs/heads/}
           fi
