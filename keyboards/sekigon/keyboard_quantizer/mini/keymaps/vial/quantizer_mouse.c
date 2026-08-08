@@ -184,9 +184,9 @@ void mouse_report_hook(mouse_parse_result_t const* report) {
     uint8_t button_current = report->button;
     for (int bit = 0; bit < 8 * sizeof(button_current); bit++) {
         if (button_current & (1 << bit)) {
-            matrix_dest[(KC_MS_BTN1 + bit) / 8 + 1] |= (1 << ((KC_MS_BTN1 + bit) & 0x07));
+            matrix_dest[(MS_BTN1 + bit) / 8 + 1] |= (1 << ((MS_BTN1 + bit) & 0x07));
         } else {
-            matrix_dest[(KC_MS_BTN1 + bit) / 8 + 1] &= ~(1 << ((KC_MS_BTN1 + bit) & 0x07));
+            matrix_dest[(MS_BTN1 + bit) / 8 + 1] &= ~(1 << ((MS_BTN1 + bit) & 0x07));
         }
     }
 
@@ -194,15 +194,15 @@ void mouse_report_hook(mouse_parse_result_t const* report) {
     scaled_report_t      scaled;
     calc_mouse_scaled_move(&raw_report, &scaled);
 
-    uint16_t ms_left_map = get_remapped_keycode_from_keycode(KC_MS_LEFT);
-    uint16_t ms_up_map   = get_remapped_keycode_from_keycode(KC_MS_UP);
-    if (ms_left_map == KC_MS_WH_RIGHT) {
+    uint16_t ms_left_map = get_remapped_keycode_from_keycode(MS_LEFT);
+    uint16_t ms_up_map   = get_remapped_keycode_from_keycode(MS_UP);
+    if (ms_left_map == MS_WHLR) {
         // remap x to h, and h will remap again
         scaled.h += scaled.xh;
         scaled.x = 0;
     }
 
-    if (ms_up_map == KC_MS_WH_DOWN) {
+    if (ms_up_map == MS_WHLD) {
         // remap y to v, and v will remap again
         scaled.v -= scaled.yv;
         scaled.y = 0;
@@ -214,7 +214,7 @@ void mouse_report_hook(mouse_parse_result_t const* report) {
     if (scaled.v != 0) {
         keypos_t key;
         wheel_move_v      = scaled.v;
-        uint16_t kc       = scaled.v > 0 ? KC_MS_WH_UP : KC_MS_WH_DOWN;
+        uint16_t kc       = scaled.v > 0 ? MS_WHLU : MS_WHLD;
         key.row           = (kc / 8) + 1;
         key.col           = kc & 0x07;
         is_encoder_action = true;
@@ -226,7 +226,7 @@ void mouse_report_hook(mouse_parse_result_t const* report) {
     if (scaled.h != 0) {
         keypos_t key;
         wheel_move_h      = scaled.h;
-        uint16_t kc       = scaled.h > 0 ? KC_MS_WH_LEFT : KC_MS_WH_RIGHT;
+        uint16_t kc       = scaled.h > 0 ? MS_WHLL : MS_WHLR;
         key.row           = (kc / 8) + 1;
         key.col           = kc & 0x07;
         is_encoder_action = true;
@@ -240,19 +240,19 @@ void mouse_report_hook(mouse_parse_result_t const* report) {
     //
     report_mouse_t mouse = pointing_device_get_report();
 
-    if (scaled.x != 0 && ms_left_map == KC_MS_LEFT) {
+    if (scaled.x != 0 && ms_left_map == MS_LEFT) {
         mouse_send_flag = true;
         mouse.x += scaled.x;
-    } else if (scaled.xh != 0 && ms_left_map == KC_MS_WH_LEFT) {
+    } else if (scaled.xh != 0 && ms_left_map == MS_WHLL) {
         // remap x to h, and h will send as mouse report
         mouse_send_flag = true;
         mouse.h += scaled.xh;
     }
 
-    if (scaled.y != 0 && ms_up_map == KC_MS_UP) {
+    if (scaled.y != 0 && ms_up_map == MS_UP) {
         mouse_send_flag = true;
         mouse.y += scaled.y;
-    } else if (scaled.yv != 0 && ms_up_map == KC_MS_WH_UP) {
+    } else if (scaled.yv != 0 && ms_up_map == MS_WHLU) {
         // remap y to v, and v will send as mouse report
         mouse_send_flag = true;
         mouse.v -= scaled.yv;
@@ -298,15 +298,15 @@ bool process_record_mouse(uint16_t keycode, keyrecord_t* record) {
     }
 
     switch (keycode) {
-        case KC_BTN1 ... KC_BTN5: {
+        case MS_BTN1 ... MS_BTN5: {
             mouse_send_flag = true;
             return true;
         } break;
 
-        case KC_MS_WH_UP ... KC_MS_WH_DOWN: {
+        case MS_WHLU ... MS_WHLD: {
             if (wheel_move_v != 0) {
                 report_mouse_t report = pointing_device_get_report();
-                report.v              = keycode == KC_MS_WH_UP ? abs(wheel_move_v) : -abs(wheel_move_v);
+                report.v              = keycode == MS_WHLU ? abs(wheel_move_v) : -abs(wheel_move_v);
                 pointing_device_set_report(report);
                 mouse_send_flag = true;
                 return false;
@@ -315,10 +315,10 @@ bool process_record_mouse(uint16_t keycode, keyrecord_t* record) {
             }
         } break;
 
-        case KC_MS_WH_LEFT ... KC_MS_WH_RIGHT: {
+        case MS_WHLL ... MS_WHLR: {
             if (wheel_move_h != 0) {
                 report_mouse_t report = pointing_device_get_report();
-                report.h              = keycode == KC_MS_WH_LEFT ? abs(wheel_move_h) : -abs(wheel_move_h);
+                report.h              = keycode == MS_WHLL ? abs(wheel_move_h) : -abs(wheel_move_h);
                 pointing_device_set_report(report);
                 mouse_send_flag = true;
                 return false;
