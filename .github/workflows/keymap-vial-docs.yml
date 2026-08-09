@@ -1,7 +1,7 @@
 name: Update KEYMAP docs
 
 # Regenerate the physical-layout KEYMAP.html for the Keyboard Quantizer Mini's
-# bundled Vial keymap (keymaps/vial/KEYMAP.vil, the AroundForty-RB keymap
+# bundled Vial keymap (keymaps/vial/KEYMAP.vil, the LisM keymap
 # produced by zmk-keymap-docgen/zmk_to_vial.py) on its vial.json layout, using
 # the zmk-keymap-docgen submodule. Mirrors the ZMK KEYMAP.html docs flow.
 #
@@ -45,7 +45,7 @@ jobs:
             --format vil \
             --layout keyboards/sekigon/keyboard_quantizer/mini/keymaps/vial/vial.json \
             -o KEYMAP.html \
-            --title "Keyboard Quantizer Mini (Vial / AroundForty-RB) キーマップ"
+            --title "Keyboard Quantizer Mini (Vial / LisM) キーマップ"
 
       - name: Commit KEYMAP docs if changed
         if: github.event_name != 'pull_request'
