@@ -9,20 +9,27 @@
  * Integration in keymaps/vial/keymap.c:
  *   1. Near the top, forward-declare the auto-apply entry point:
  *        void zmk_keymap_apply_if_outdated(void);
- *   2. At the END of keyboard_post_init_user(), call it:
+ *   2. Call it from keyboard_post_init_user() BEFORE the keymap reads
+ *      eeconfig_read_user() into any cached copy:
  *        zmk_keymap_apply_if_outdated();
+ *      The apply stamp lives in bits 8..31 of the user EEPROM word; a
+ *      stale cached copy written back later (eeconfig_update_user) would
+ *      revert it and make the next boot re-apply the defaults over the
+ *      user's Vial edits. The keymap's own user config must stay within
+ *      bits 0..7.
  *   3. At the end of the file, include this generated file:
  *        #include "zmk_keymap_defaults.inc"
  *
- * zmk_keymap_apply_if_outdated() applies the bundled keymap once after
- * flashing a firmware whose keymap differs from what is stored in EEPROM
- * (so flashing alone applies it — no manual EEPROM reset or .vil load
- * needed), while preserving the user's later Vial edits across reboots of
- * the same firmware. eeconfig_init_user() covers the EEPROM-reset path.
+ * zmk_keymap_apply_if_outdated() applies the bundled keymap on the first
+ * boot of every flashed build and whenever the keymap content changed (so
+ * flashing alone applies it — no manual EEPROM reset or .vil load needed),
+ * while preserving the user's later Vial edits across reboots of the same
+ * build. eeconfig_init_user() covers the EEPROM-reset path.
  */
 
 #include "dynamic_keymap.h"
 #include "eeconfig.h"
+#include "version.h" /* BUILD_ID (vial-qmk: per-build VIA EEPROM magic) */
 #include "vial.h"
 #ifdef QMK_SETTINGS
 #    include "qmk_settings.h"
@@ -482,12 +489,25 @@ static const uint8_t zmk_macro_buffer[] = {
     0x00, 0x00, 0x00,
 };
 
-/* Content hash of the bundled keymap. Stored in the high 16 bits of the
- * user EEPROM word so that flashing a firmware with a *changed* keymap
- * re-applies it on the next boot (see zmk_keymap_apply_if_outdated). */
-#define ZMK_KEYMAP_VERSION 0x6651u
-#define ZMK_KEYMAP_VERSION_SHIFT 16
-#define ZMK_KEYMAP_VERSION_MASK 0xFFFFu
+/* Content hash of the bundled keymap (see ZMK_KEYMAP_STAMP). */
+#define ZMK_KEYMAP_VERSION 0xBB02u
+
+/* On vial-qmk the VIA EEPROM magic is BUILD_ID (random 24-bit value per
+ * build, see util/build_id.py), so the first boot of every new build runs
+ * eeconfig_init_via() -> dynamic_keymap_reset() -> qmk_settings_reset()
+ * without touching the user EEPROM word. The stamp stored in bits 8..31 of
+ * that word therefore mixes the keymap hash with the whole BUILD_ID: a
+ * rebuilt firmware (new BUILD_ID) or a changed keymap (new hash) re-applies
+ * the bundled keymap on its first boot, while reboots of the same build
+ * keep the user's later Vial edits. The keymap's own user config must
+ * stay within bits 0..7. */
+#ifndef BUILD_ID
+#    define BUILD_ID 0u /* not vial-qmk: the VIA region is not reset per build */
+#endif
+#define ZMK_KEYMAP_STAMP_SHIFT 8
+#define ZMK_KEYMAP_STAMP_MASK 0xFFFFFFu
+#define ZMK_KEYMAP_STAMP \
+    (((uint32_t)ZMK_KEYMAP_VERSION ^ (uint32_t)BUILD_ID) & ZMK_KEYMAP_STAMP_MASK)
 
 static void zmk_apply_keymap_defaults(void) {
     /* Keymap cells that differ from the pass-through default */
@@ -513,12 +533,24 @@ static void zmk_apply_keymap_defaults(void) {
                                     (uint8_t *)zmk_macro_buffer);
 
 #ifdef QMK_SETTINGS
-    /* QMK settings (tapping term etc.) */
+    /* QMK settings (Vial QSID -> value). The C types follow qmk_settings_t
+     * in quantum/qmk_settings.c: qmk_settings_set() silently rejects a
+     * buffer smaller than the setting. */
     {
-        uint16_t tapping_term = 150;
-        qmk_settings_set(7, &tapping_term, sizeof(tapping_term));
-        uint8_t qs_22 = 1;
+        uint16_t qs_7 = 150;  /* tapping_term */
+        qmk_settings_set(7, &qs_7, sizeof(qs_7));
+        uint8_t qs_22 = 1;  /* permissive_hold */
         qmk_settings_set(22, &qs_22, sizeof(qs_22));
+        uint8_t qs_23 = 0;  /* hold_on_other_key_press */
+        qmk_settings_set(23, &qs_23, sizeof(qs_23));
+        uint8_t qs_24 = 0;  /* retro_tapping */
+        qmk_settings_set(24, &qs_24, sizeof(qs_24));
+        uint16_t qs_25 = 0;  /* quick_tap_term */
+        qmk_settings_set(25, &qs_25, sizeof(qs_25));
+        uint8_t qs_26 = 0;  /* chordal_hold */
+        qmk_settings_set(26, &qs_26, sizeof(qs_26));
+        uint16_t qs_27 = 0;  /* flow_tap_term */
+        qmk_settings_set(27, &qs_27, sizeof(qs_27));
     }
 #endif
 
@@ -526,24 +558,28 @@ static void zmk_apply_keymap_defaults(void) {
     vial_init();
 }
 
-void eeconfig_init_user(void) {
-    /* Runs when the EEPROM is (re)initialised. Apply the bundled keymap
-     * and stamp its version (the low bits stay 0 = the keyboard's own
-     * user_config default, matching QMK's weak eeconfig_init_user). */
-    zmk_apply_keymap_defaults();
-    eeconfig_update_user((uint32_t)ZMK_KEYMAP_VERSION << ZMK_KEYMAP_VERSION_SHIFT);
+static void zmk_keymap_write_stamp(uint32_t raw) {
+    raw = (raw & ~(ZMK_KEYMAP_STAMP_MASK << ZMK_KEYMAP_STAMP_SHIFT))
+          | (ZMK_KEYMAP_STAMP << ZMK_KEYMAP_STAMP_SHIFT);
+    eeconfig_update_user(raw);
 }
 
-/* Call once from keyboard_post_init_user(). Applies the bundled keymap
- * the first time a firmware with this keymap version boots (so flashing
- * applies it without a manual EEPROM reset), and preserves the user's
- * later Vial edits on subsequent boots of the same version. */
+void eeconfig_init_user(void) {
+    /* Runs when the EEPROM is (re)initialised. Apply the bundled keymap
+     * and stamp it (the low bits stay 0 = the keyboard's own user_config
+     * default, matching QMK's weak eeconfig_init_user). */
+    zmk_apply_keymap_defaults();
+    zmk_keymap_write_stamp(0);
+}
+
+/* Call once from keyboard_post_init_user(). Applies the bundled keymap on
+ * the first boot of this build (vial-qmk resets the VIA EEPROM region per
+ * build) and after a keymap change, and preserves the user's later Vial
+ * edits on subsequent boots of the same build. */
 void zmk_keymap_apply_if_outdated(void) {
     uint32_t raw = eeconfig_read_user();
-    if (((raw >> ZMK_KEYMAP_VERSION_SHIFT) & ZMK_KEYMAP_VERSION_MASK) != ZMK_KEYMAP_VERSION) {
+    if (((raw >> ZMK_KEYMAP_STAMP_SHIFT) & ZMK_KEYMAP_STAMP_MASK) != ZMK_KEYMAP_STAMP) {
         zmk_apply_keymap_defaults();
-        raw = (raw & ~((uint32_t)ZMK_KEYMAP_VERSION_MASK << ZMK_KEYMAP_VERSION_SHIFT))
-              | ((uint32_t)ZMK_KEYMAP_VERSION << ZMK_KEYMAP_VERSION_SHIFT);
-        eeconfig_update_user(raw);
+        zmk_keymap_write_stamp(raw);
     }
 }
