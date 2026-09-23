@@ -75,14 +75,19 @@ static uint8_t get_gesture_threshold(void) {
     return 50;
 }
 
-// Applies the bundled LisM keymap to EEPROM the first time a firmware
-// with a new keymap version boots. Defined in zmk_keymap_defaults.inc (included
-// at the end of this file).
+// Applies the bundled LisM keymap to EEPROM on the first boot of every flashed
+// build (vial-qmk resets the VIA EEPROM region per build) and after a keymap
+// change. Defined in zmk_keymap_defaults.inc (included at the end of this file).
+// Must run BEFORE user_config caches eeconfig_read_user(): the apply stamp lives
+// in bits 8..31 of the user word and process_record_user() writes the cached
+// word back with eeconfig_update_user().
 void zmk_keymap_apply_if_outdated(void);
 
 void keyboard_post_init_user(void) {
     set_mouse_gesture_threshold(get_gesture_threshold());
     os_key_override_init();
+
+    zmk_keymap_apply_if_outdated();
 
     user_config.raw = eeconfig_read_user();
     switch (user_config.key_os_override) {
@@ -96,8 +101,6 @@ void keyboard_post_init_user(void) {
             register_jp_key_on_us_os_overrides();
             break;
     }
-
-    zmk_keymap_apply_if_outdated();
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
