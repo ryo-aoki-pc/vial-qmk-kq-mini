@@ -166,6 +166,61 @@ static void calc_mouse_scaled_move(mouse_parse_result_t const* report, scaled_re
     yv_frac         = yv_real - (scaled->yv << 8);
 }
 
+//
+// Mouse buttons are assigned to the matrix positions of KC_MS_BTN1..KC_MS_BTN8
+// 8 button mouse is assumed
+//
+#define MOUSE_BUTTON_COUNT 8
+#define MOUSE_BUTTON_ROW(bit) ((KC_MS_BTN1 + (bit)) / 8 + 1)
+#define MOUSE_BUTTON_MASK(bit) ((matrix_row_t)1 << ((KC_MS_BTN1 + (bit)) & 0x07))
+
+static uint8_t get_mouse_buttons_from_matrix(void) {
+    uint8_t buttons = 0;
+    for (int bit = 0; bit < MOUSE_BUTTON_COUNT; bit++) {
+        if (matrix_dest[MOUSE_BUTTON_ROW(bit)] & MOUSE_BUTTON_MASK(bit)) {
+            buttons |= (1 << bit);
+        }
+    }
+    return buttons;
+}
+
+static void set_mouse_buttons_to_matrix(uint8_t buttons) {
+    for (int bit = 0; bit < MOUSE_BUTTON_COUNT; bit++) {
+        if (buttons & (1 << bit)) {
+            matrix_dest[MOUSE_BUTTON_ROW(bit)] |= MOUSE_BUTTON_MASK(bit);
+        } else {
+            matrix_dest[MOUSE_BUTTON_ROW(bit)] &= ~MOUSE_BUTTON_MASK(bit);
+        }
+    }
+}
+
+// Overrides the weak keyboard_report_hook() in matrix.c.
+// A keyboard report rewrites every key row of the matrix, including the rows of
+// the mouse buttons, so a button held on the mouse was released whenever a key
+// (e.g. a modifier during a drag) was pressed or released. Keep the buttons the
+// mouse holds until the mouse reports their release.
+void keyboard_report_hook(keyboard_parse_result_t const* report) {
+    if (debug_enable) {
+        xprintf("Keyboard report\n");
+        for (size_t idx = 0; idx < sizeof(report->bits); idx++) {
+            xprintf("%02X ", report->bits[idx]);
+        }
+        xprintf("\n");
+    }
+
+    uint8_t held_buttons = get_mouse_buttons_from_matrix();
+
+    for (uint8_t rowIdx = 0; rowIdx < MATRIX_ROWS - 1; rowIdx++) {
+        matrix_dest[rowIdx + 1] = report->bits[rowIdx];
+    }
+
+    // copy modifier bits
+    matrix_dest[0]  = report->bits[28];
+    matrix_dest[29] = 0;
+
+    set_mouse_buttons_to_matrix(held_buttons | get_mouse_buttons_from_matrix());
+}
+
 void mouse_report_hook(mouse_parse_result_t const* report) {
     if (debug_enable) {
         xprintf("Mouse report\n");
@@ -179,16 +234,8 @@ void mouse_report_hook(mouse_parse_result_t const* report) {
 
     //
     // Assign buttons to matrix
-    // 8 button mouse is assumed
     //
-    uint8_t button_current = report->button;
-    for (int bit = 0; bit < 8 * sizeof(button_current); bit++) {
-        if (button_current & (1 << bit)) {
-            matrix_dest[(KC_MS_BTN1 + bit) / 8 + 1] |= (1 << ((KC_MS_BTN1 + bit) & 0x07));
-        } else {
-            matrix_dest[(KC_MS_BTN1 + bit) / 8 + 1] &= ~(1 << ((KC_MS_BTN1 + bit) & 0x07));
-        }
-    }
+    set_mouse_buttons_to_matrix(report->button);
 
     mouse_parse_result_t raw_report = *report;
     scaled_report_t      scaled;
