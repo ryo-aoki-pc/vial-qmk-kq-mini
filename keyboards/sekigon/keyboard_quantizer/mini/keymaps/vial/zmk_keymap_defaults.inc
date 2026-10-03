@@ -231,8 +231,8 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
     {6, 0, 2, KC_NO},
     {6, 0, 3, KC_NO},
     {6, 0, 6, KC_NO},
-    {6, 1, 4, KC_CAPS_LOCK},
-    {6, 1, 5, QK_BOOT},
+    {6, 1, 4, KC_NO},
+    {6, 1, 5, KC_NO},
     {6, 1, 6, KC_INSERT},
     {6, 1, 7, KC_PRINT_SCREEN},
     {6, 2, 0, KC_F3},
@@ -242,14 +242,14 @@ static const zmk_keymap_entry_t zmk_keymap_entries[] = {
     {6, 2, 4, KC_F8},
     {6, 2, 5, KC_NO},
     {6, 2, 6, KC_NO},
-    {6, 2, 7, QK_RBT},
+    {6, 2, 7, KC_NO},
     {6, 3, 0, KC_NO},
-    {6, 3, 1, QK_BOOT},
+    {6, 3, 1, KC_NO},
     {6, 3, 2, KC_F9},
     {6, 3, 3, KC_F10},
     {6, 3, 4, KC_F1},
     {6, 3, 5, KC_F4},
-    {6, 3, 6, QK_RBT},
+    {6, 3, 6, KC_NO},
     {6, 3, 7, KC_F5},
     {6, 4, 0, KC_F7},
     {6, 4, 1, KC_NO},
@@ -490,7 +490,7 @@ static const uint8_t zmk_macro_buffer[] = {
 };
 
 /* Content hash of the bundled keymap (see ZMK_KEYMAP_STAMP). */
-#define ZMK_KEYMAP_VERSION 0x8514u
+#define ZMK_KEYMAP_VERSION 0x6EEEu
 
 /* On vial-qmk the VIA EEPROM magic is BUILD_ID (random 24-bit value per
  * build, see util/build_id.py), so the first boot of every new build runs
